@@ -8,7 +8,7 @@ import com.mccorby.openmined.worker.datasource.SyftWebSocketDataSource
 import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftRepository
 import com.mccorby.openmined.worker.domain.SyftTensor
-import com.mccorby.openmined.worker.framework.DL4JOperations
+import com.mccorby.openmined.worker.domain.TensorIdGenerator
 import com.mccorby.openmined.worker.framework.toINDArray
 import com.mccorby.openmined.worker.ui.MainViewModelFactory
 import kotlinx.android.synthetic.main.activity_main.*
@@ -30,9 +30,9 @@ class MainActivity : AppCompatActivity() {
     // TODO Inject using Kodein or another DI framework
     private fun injectDependencies() {
         val webSocketUrl = "http://10.0.2.2:5000"
-//        val webSocketUrl = "http://192.168.0.33:5000"
         val syftDataSource = SyftWebSocketDataSource(webSocketUrl)
-        val syftRepository = SyftRepository(syftDataSource)
+        val tensorIdGenerator = TensorIdGenerator()
+        val syftRepository = SyftRepository(syftDataSource, tensorIdGenerator)
 
         viewModel = ViewModelProviders.of(
             this,

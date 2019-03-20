@@ -7,4 +7,5 @@ sealed class SyftMessage {
     data class SetObject(val objectToSet: SyftTensor): SyftMessage()
     data class RespondToObjectRequest(val objectToSet: Any): SyftMessage()
     data class DeleteObject(val objectToSet: Any): SyftMessage()
+    data class ClientResponse(val tensorPointerId: Long): SyftMessage()
 }

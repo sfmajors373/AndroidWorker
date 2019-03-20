@@ -10,12 +10,11 @@ import io.reactivex.processors.PublishProcessor
 import io.socket.client.IO
 import io.socket.client.Socket
 
-
 private const val SEND_NEW_MESSAGE = "client_new_message"
 
 private const val TAG = "SyftWebSocketDataSource"
 
-class SyftWebSocketDataSource(private val webSocketUrl: String) : SyftDataSource{
+class SyftWebSocketDataSource(private val webSocketUrl: String) : SyftDataSource {
     private lateinit var socket: Socket
     private val publishProcessor: PublishProcessor<SyftMessage> = PublishProcessor.create<SyftMessage>()
 
@@ -58,7 +57,7 @@ class SyftWebSocketDataSource(private val webSocketUrl: String) : SyftDataSource
 
     private fun onEventMessage(vararg args: Any) {
         // Decompress, Deserialise, Build object
-
+        Log.d(TAG, "Received message from the other side")
         val syftMessage = ((args[0] as Array<Any>)[0] as ByteArray).mapToSyftMessage()
 
         Log.d(TAG, "SyftTensor $syftMessage")

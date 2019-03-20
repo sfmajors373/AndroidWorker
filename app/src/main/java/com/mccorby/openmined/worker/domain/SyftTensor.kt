@@ -1,3 +1,11 @@
 package com.mccorby.openmined.worker.domain
 
-data class SyftTensor(val byteArray: ByteArray = ByteArray(0))
+const val NO_ID: Long = -1
+
+data class SyftTensor(val id: Long, val byteArray: ByteArray = ByteArray(0))
+
+class TensorIdGenerator {
+    fun generateId(): Long {
+        return System.currentTimeMillis()
+    }
+}
