@@ -1,7 +1,6 @@
 package com.mccorby.openmined.worker.datasource.mapper
 
 import android.util.Log
-import com.mccorby.openmined.worker.domain.NO_ID
 import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftTensor
 import org.msgpack.core.MessageBufferPacker
@@ -9,12 +8,8 @@ import org.msgpack.core.MessagePack
 import org.msgpack.core.MessagePacker
 
 private const val TAG = "MapperDS"
+private const val COMPRESSION_ENABLED = 49
 
-fun SyftMessage.toByteArray(): ByteArray {
-    val packer = MessagePack.newDefaultBufferPacker()
-    // TODO packer.packBlahBlahBlha
-    return packer.toByteArray()
-}
 
 // TODO Probably Json or something similar. The name should reflect the format
 fun SyftMessage.mapToString(): String {
@@ -33,13 +28,16 @@ private fun mapExecuteCommand(packer: MessageBufferPacker, syftMessage: SyftMess
 }
 
 fun ByteArray.mapToSyftMessage(): SyftMessage {
-    // https://github.com/msgpack/msgpack-java/blob/develop/msgpack-core/src/test/java/org/msgpack/core/example/MessagePackExample.java
     // (tensor.id, tensor_bin, chain, grad_chain, tags, tensor.description)
-
+    Log.d(TAG, this.toString())
     // Remove first byte indicating if stream has been compressed or not
     val isCompress = this[0]
-    Log.d(TAG, "Compress -> $isCompress")
-    val byteArray = this.drop(1).toByteArray()
+    val byteArray = if (isCompress.toInt() == COMPRESSION_ENABLED) {
+        decompress(this.drop(1).toByteArray())
+    } else {
+        this.drop(1).toByteArray()
+    }
+
 
     val unpacker = MessagePack.newDefaultUnpacker(byteArray)
     val map = unpacker.unpackValue()
@@ -72,8 +70,26 @@ fun ByteArray.mapToSyftMessage(): SyftMessage {
             }
         }
     }
-    // TODO Forcing a SetObject message. The correct SyftMessage must be mapped from the tupleDto.op
-    return SyftMessage.SetObject(SyftTensor(dto.value.id.toLong(), dto.value.data))
+    return mapOperation(dto)
+}
+
+fun decompress(stream: ByteArray): ByteArray {
+    TODO("LZ4 Compression Not yet Implemented")
+//    val factory = LZ4Factory.fastestInstance()
+//    // Size is not known. It could be sent in the tuple
+//    val decompressor = factory.safeDecompressor()
+//    var dest = ByteArray(8096)
+//    val decompressedLength = decompressor.decompress(stream, dest)
+//    return dest
+}
+
+private fun mapOperation(tupleDto: TupleDto): SyftMessage {
+    return when (tupleDto.op) {
+        0 -> SyftMessage.SetObject(SyftTensor(tupleDto.value.id.toLong(), tupleDto.value.data))
+        else -> {
+            throw IllegalArgumentException("Operation ${tupleDto.op} not yet supported")
+        }
+    }
 }
 
 class TupleDto {
