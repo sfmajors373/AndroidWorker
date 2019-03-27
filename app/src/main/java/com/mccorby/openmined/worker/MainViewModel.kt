@@ -3,18 +3,17 @@ package com.mccorby.openmined.worker
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import android.util.Log
-import com.mccorby.openmined.worker.datasource.SyftWebSocketDataSource
-import com.mccorby.openmined.worker.domain.SyftCommand
-import com.mccorby.openmined.worker.domain.SyftMessage
-import com.mccorby.openmined.worker.domain.SyftRepository
-import com.mccorby.openmined.worker.domain.SyftTensor
+import com.mccorby.openmined.worker.domain.*
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class MainViewModel(private val syftRepository: SyftRepository) : ViewModel() {
+class MainViewModel(
+    private val syftRepository: SyftRepository,
+    private val mlFramework: Operations
+) : ViewModel() {
 
     val syftMessageState = MutableLiveData<SyftMessage>()
     val syftTensorState = MutableLiveData<SyftTensor>()
@@ -32,7 +31,14 @@ class MainViewModel(private val syftRepository: SyftRepository) : ViewModel() {
 
     fun sendMessage() {
         GlobalScope.launch {
-            syftRepository.sendMessage(SyftMessage.ExecuteCommand(SyftCommand.Result(null, desc = "This would be a result")))
+            syftRepository.sendMessage(
+                SyftMessage.ExecuteCommand(
+                    SyftCommand.Result(
+                        null,
+                        desc = "This would be a result"
+                    )
+                )
+            )
             viewState.postValue("Message sent")
         }
     }
@@ -49,11 +55,30 @@ class MainViewModel(private val syftRepository: SyftRepository) : ViewModel() {
     private fun processNewMessage(newSyftMessage: SyftMessage) {
         Log.d("MainActivity", "Received new SyftMessage at $newSyftMessage")
         when (newSyftMessage) {
-            is SyftMessage.SetObject -> { syftTensorState.postValue(newSyftMessage.objectToSet) }
-            else -> { syftMessageState.postValue(newSyftMessage) }
+            is SyftMessage.SetObject -> {
+                syftTensorState.postValue(newSyftMessage.objectToSet)
+            }
+            is SyftMessage.ExecuteCommand -> {
+                syftTensorState.postValue(createCommandEvent(newSyftMessage))
+            }
+            else -> {
+                syftMessageState.postValue(newSyftMessage)
+            }
         }
     }
 
+    private fun createCommandEvent(syftMessage: SyftMessage.ExecuteCommand): SyftTensor {
+        // TODO This should be done by a domain component
+        return when (syftMessage.command) {
+            is SyftCommand.AddTensors -> {
+                // TODO Lots of assumptions here! Just for test sake
+                mlFramework.add(syftMessage.command.tensors[0], syftMessage.command.tensors[1])
+            }
+            else -> {
+                TODO("${syftMessage.command} not yet implemented")
+            }
+        }
+    }
 
     public override fun onCleared() {
         compositeDisposable.clear()

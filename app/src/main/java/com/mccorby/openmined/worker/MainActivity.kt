@@ -9,6 +9,7 @@ import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftRepository
 import com.mccorby.openmined.worker.domain.SyftTensor
 import com.mccorby.openmined.worker.domain.TensorIdGenerator
+import com.mccorby.openmined.worker.framework.DL4JOperations
 import com.mccorby.openmined.worker.framework.toINDArray
 import com.mccorby.openmined.worker.ui.MainViewModelFactory
 import kotlinx.android.synthetic.main.activity_main.*
@@ -33,10 +34,11 @@ class MainActivity : AppCompatActivity() {
         val syftDataSource = SyftWebSocketDataSource(webSocketUrl)
         val tensorIdGenerator = TensorIdGenerator()
         val syftRepository = SyftRepository(syftDataSource, tensorIdGenerator)
+        val mlFramework = DL4JOperations()
 
         viewModel = ViewModelProviders.of(
             this,
-            MainViewModelFactory(syftRepository)
+            MainViewModelFactory(syftRepository, mlFramework)
         ).get(MainViewModel::class.java)
 
         viewModel.syftMessageState.observe(this, Observer<SyftMessage> {

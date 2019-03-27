@@ -11,6 +11,7 @@ sealed class SyftMessage {
 }
 
 sealed class SyftCommand {
-    data class Add(val tensors: List<SyftTensorId>) : SyftCommand()
+    data class AddPointers(val tensorPointers: List<SyftTensorId>) : SyftCommand()
+    data class AddTensors(val tensors: List<SyftTensor>) : SyftCommand()
     data class Result(val result: SyftTensor?, val desc: String?): SyftCommand()
 }

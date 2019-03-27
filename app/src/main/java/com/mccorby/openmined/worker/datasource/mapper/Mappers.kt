@@ -1,13 +1,16 @@
 package com.mccorby.openmined.worker.datasource.mapper
 
 import android.util.Log
+import com.mccorby.openmined.worker.domain.SyftCommand
 import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftTensor
 import org.msgpack.core.MessageBufferPacker
 import org.msgpack.core.MessagePack
 import org.msgpack.core.MessagePacker
 import org.msgpack.value.ArrayValue
+import org.msgpack.value.ImmutableArrayValue
 import org.msgpack.value.Value
+import org.msgpack.value.impl.ImmutableArrayValueImpl
 
 private const val TAG = "MapperDS"
 
@@ -64,7 +67,7 @@ fun ByteArray.mapToSyftMessage(): SyftMessage {
     // Assuming any message comes encapsulated in an outer tuple
     // (2, (2, (0, (68305306082, b"\The Binary Thing representing the tensor))))
     // SEND TENSOR -> (tuple_type, (operation, (tensor_type, (id, data))))
-    // ADD Tensor Pointers [2, [10, [2, [[2, [b'__add__', [11, [69112721853, 38651364915, b'bob', None, [5]]], [2, [[11, [22595865006, 76820697749, b'bob', None, [5]]]]], [5, {}]]], [3, [35031792243]]]]]]
+    // ADD Tensor Pointers [2, [1, [2, [[2, [b'__add__', [11, [69112721853, 38651364915, b'bob', None, [5]]], [2, [[11, [22595865006, 76820697749, b'bob', None, [5]]]]], [5, {}]]], [3, [35031792243]]]]]]
     // Add tensor is [tuple_type, [CMD, [tuple_type, [[tuple_type, [op, [pointer_type, [me, bob]]]?????
 
     // This is the trick done in _detail
@@ -85,9 +88,33 @@ private fun unpackOperation(operationArray: ArrayValue): OperationDto {
     val operands = operationArray.drop(1)
     return when (operation) {
         OBJ -> unpackObjectSet(operands)
-//        CMD -> unpackCommand(operands)
+        CMD -> unpackCommand(operands)
         else -> {
             TODO("Operation $operation not yet implemented!")
+        }
+    }
+}
+
+fun unpackCommand(operands: List<Value>): OperationDto {
+    // operands comes in the form (2, listOfOperands), with the "2" meaning that a tuple comes next.
+    // At this point we should have a list with the form [2, [command, [list of operands]]
+    // TODO Check the type of the list of operands. Would it be possible to receive just one element and not a list?
+    val listOfOperands = operands[0].asArrayValue().drop(1)[0].asArrayValue()
+    val command = listOfOperands[0].asStringValue().asString()
+    return when (command) {
+        CMD_ADD -> {
+            val operationDto = OperationDto(op = CMD, command = command)
+            // ["__add__",[2,[[0,[98058441856,"tensor_data",null,null,null,null]],[0,[31147267379,"tensor_data",null,null,null,null]]]]]
+            // TODO Assuming we are receiving tensors... not always the case. This is just a start!
+            val tensorList = mutableListOf<TensorDto>()
+            listOfOperands.drop(1)[0].asArrayValue().drop(1)[0].asArrayValue().forEach {
+                tensorList.add(mapTensor(it.asArrayValue()))
+            }
+            operationDto.value = tensorList.toList()
+            operationDto
+        }
+        else -> {
+            TODO("$command not yet implemented!")
         }
     }
 }
@@ -95,17 +122,16 @@ private fun unpackOperation(operationArray: ArrayValue): OperationDto {
 private fun unpackObjectSet(operands: List<Value>): OperationDto {
     val unpackedOperands = operands[0].asArrayValue()
     val operandType = unpackedOperands[0].asIntegerValue().asInt() // This can be a tensor, a list of tensors....
-    val tupleDto = OperationDto()
     val data = when (operandType) {
-        TYPE_TENSOR -> { mapTensor(unpackedOperands, tupleDto) }
+        TYPE_TENSOR -> { mapTensor(unpackedOperands) }
         else -> {
             TODO("$operandType not yet implemented")
         }
     }
-    return OperationDto(operandType, listOf(data))
+    return OperationDto(OBJ, "", listOf(data))
 }
 
-private fun mapTensor(streamToDecode: ArrayValue, dto: OperationDto): TensorDto {
+private fun mapTensor(streamToDecode: ArrayValue): TensorDto {
     val tensorDto = TensorDto()
     streamToDecode.forEachIndexed { index, value ->
         when (index) {
@@ -150,7 +176,8 @@ fun decompress(stream: ByteArray): ByteArray {
 
 private fun mapOperation(operationDto: OperationDto): SyftMessage {
     return when (operationDto.op) {
-        0 -> SyftMessage.SetObject(SyftTensor(operationDto.value.first().id.toLong(), operationDto.value.first().data))
+        OBJ -> SyftMessage.SetObject(SyftTensor(operationDto.value.first().id.toLong(), operationDto.value.first().data))
+        CMD -> SyftMessage.ExecuteCommand(SyftCommand.AddTensors(operationDto.value.map { SyftTensor(it.id.toLong(), it.data) }))
         else -> {
             throw IllegalArgumentException("Operation ${operationDto.op} not yet supported")
         }
@@ -159,10 +186,11 @@ private fun mapOperation(operationDto: OperationDto): SyftMessage {
 
 class OperationDto(
     var op: Int = 0,
+    var command: String = "",
     var value: List<TensorDto> = mutableListOf()
 ) {
     override fun toString(): String {
-        return "$op - $value"
+        return "$op - $command - $value"
     }
 }
 
