@@ -4,6 +4,7 @@ import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import android.util.Log
 import com.mccorby.openmined.worker.datasource.SyftWebSocketDataSource
+import com.mccorby.openmined.worker.domain.SyftCommand
 import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftRepository
 import com.mccorby.openmined.worker.domain.SyftTensor
@@ -31,7 +32,7 @@ class MainViewModel(private val syftRepository: SyftRepository) : ViewModel() {
 
     fun sendMessage() {
         GlobalScope.launch {
-            syftRepository.sendMessage(SyftMessage.ExecuteCommand("FromMeToYou"))
+            syftRepository.sendMessage(SyftMessage.ExecuteCommand(SyftCommand.Result(null, desc = "This would be a result")))
             viewState.postValue("Message sent")
         }
     }
