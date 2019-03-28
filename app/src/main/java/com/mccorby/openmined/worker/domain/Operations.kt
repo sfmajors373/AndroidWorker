@@ -1,7 +1,7 @@
 package com.mccorby.openmined.worker.domain
 
 interface Operations {
-    fun add(tensor1: SyftTensor, tensor2: SyftTensor): SyftTensor
+    fun add(tensor1: SyftOperand.SyftTensor, tensor2: SyftOperand.SyftTensor): SyftOperand.SyftTensor
 
     // TODO Other operations
 }

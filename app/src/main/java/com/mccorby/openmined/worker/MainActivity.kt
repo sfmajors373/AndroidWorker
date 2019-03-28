@@ -4,10 +4,11 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import com.mccorby.openmined.worker.datasource.SyftOkHttpWebSocketDataSource
 import com.mccorby.openmined.worker.datasource.SyftWebSocketDataSource
 import com.mccorby.openmined.worker.domain.SyftMessage
+import com.mccorby.openmined.worker.domain.SyftOperand
 import com.mccorby.openmined.worker.domain.SyftRepository
-import com.mccorby.openmined.worker.domain.SyftTensor
 import com.mccorby.openmined.worker.domain.TensorIdGenerator
 import com.mccorby.openmined.worker.framework.DL4JOperations
 import com.mccorby.openmined.worker.framework.toINDArray
@@ -30,8 +31,9 @@ class MainActivity : AppCompatActivity() {
 
     // TODO Inject using Kodein or another DI framework
     private fun injectDependencies() {
+        val clientId = "Android-${System.currentTimeMillis()}"
         val webSocketUrl = "http://10.0.2.2:5000"
-        val syftDataSource = SyftWebSocketDataSource(webSocketUrl)
+        val syftDataSource = SyftWebSocketDataSource(webSocketUrl, clientId)
         val tensorIdGenerator = TensorIdGenerator()
         val syftRepository = SyftRepository(syftDataSource, tensorIdGenerator)
         val mlFramework = DL4JOperations()
@@ -45,9 +47,8 @@ class MainActivity : AppCompatActivity() {
             log_area.append(it.toString() + "\n")
 
         })
-        viewModel.syftTensorState.observe(this, Observer<SyftTensor> {
-            log_area.append(it.toString() + "\n")
-            log_area.append(it!!.toINDArray().toString())
+        viewModel.syftTensorState.observe(this, Observer<SyftOperand.SyftTensor> {
+            log_area.append(it!!.toINDArray().toString() + "\n")
         })
         viewModel.viewState.observe(this, Observer {
             log_area.append(it + "\n")

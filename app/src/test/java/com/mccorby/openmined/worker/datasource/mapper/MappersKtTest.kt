@@ -1,15 +1,10 @@
 package com.mccorby.openmined.worker.datasource.mapper
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.collect.ImmutableCollection
-import com.mccorby.openmined.worker.domain.SyftCommand
-import com.mccorby.openmined.worker.domain.SyftMessage
-import com.mccorby.openmined.worker.domain.SyftTensor
+import com.mccorby.openmined.worker.domain.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.msgpack.core.MessagePack
-import org.msgpack.value.IntegerValue
 import org.msgpack.value.Value
 import org.msgpack.value.impl.ImmutableArrayValueImpl
 import org.msgpack.value.impl.ImmutableLongValueImpl
@@ -22,7 +17,12 @@ class MappersKtTest {
         // Given
         val tensorAsBytes = ByteArray(0)
         print(tensorAsBytes.contentToString())
-        val expected = SyftMessage.SetObject(SyftTensor(6830, tensorAsBytes.contentToString().toByteArray()))
+        val expected = SyftMessage.SetObject(
+            SyftOperand.SyftTensor(
+                6830,
+                tensorAsBytes.contentToString().toByteArray()
+            )
+        )
 
         val tensorArray = ImmutableArrayValueImpl(
             arrayOf<Value>(
@@ -36,15 +36,19 @@ class MappersKtTest {
             )
         )
 
-        val operationArray = ImmutableArrayValueImpl(arrayOf<Value>(
-            ImmutableLongValueImpl(2),
-            tensorArray
-        ))
+        val operationArray = ImmutableArrayValueImpl(
+            arrayOf<Value>(
+                ImmutableLongValueImpl(2),
+                tensorArray
+            )
+        )
 
-        val outerWrapper = ImmutableArrayValueImpl(arrayOf<Value>(
-            ImmutableLongValueImpl(2),
-            operationArray
-        ))
+        val outerWrapper = ImmutableArrayValueImpl(
+            arrayOf<Value>(
+                ImmutableLongValueImpl(2),
+                operationArray
+            )
+        )
 
         val packer = MessagePack.newDefaultBufferPacker()
         packer.packValue(ImmutableArrayValueImpl(arrayOf(outerWrapper)))
@@ -58,45 +62,123 @@ class MappersKtTest {
         assertEquals(expected, syftMessage)
     }
 
+//    @Test
+//    fun `Given a msgpack byte array containing an Add operation and two tensors the mapper returns the corresponding SyftMessage`() {
+//        // Given
+//        val tensorAsBytes = ByteArray(0)
+//        print(tensorAsBytes.contentToString())
+//        val tensor1 = SyftOperand.SyftTensor(6830, tensorAsBytes.contentToString().toByteArray())
+//        val tensor2 = SyftOperand.SyftTensor(1234, tensorAsBytes.contentToString().toByteArray())
+//        val expected = SyftMessage.ExecuteCommand(SyftCommand.Add(listOf(tensor1, tensor2)))
+//
+//        val tensor1Array = ImmutableArrayValueImpl(
+//            arrayOf<Value>(
+//                ImmutableLongValueImpl(0),
+//                ImmutableArrayValueImpl(
+//                    arrayOf<Value>(
+//                        ImmutableLongValueImpl(6830),
+//                        ImmutableStringValueImpl(tensorAsBytes.contentToString())
+//                    )
+//                )
+//            )
+//        )
+//
+//        val tensor2Array = ImmutableArrayValueImpl(
+//            arrayOf<Value>(
+//                ImmutableLongValueImpl(0),
+//                ImmutableArrayValueImpl(
+//                    arrayOf<Value>(
+//                        ImmutableLongValueImpl(1234),
+//                        ImmutableStringValueImpl(tensorAsBytes.contentToString())
+//                    )
+//                )
+//            )
+//        )
+//
+//        val operandsArray = ImmutableArrayValueImpl(
+//            arrayOf<Value>(
+//                ImmutableLongValueImpl(2),
+//                ImmutableArrayValueImpl(
+//                    arrayOf<Value>(
+//                        tensor1Array, tensor2Array
+//                    )
+//                )
+//            )
+//        )
+//
+//        val operationAndOperandsArray = ImmutableArrayValueImpl(
+//            arrayOf<Value>(
+//                ImmutableLongValueImpl(2),
+//                ImmutableArrayValueImpl(
+//                    arrayOf<Value>(
+//                        ImmutableStringValueImpl("__add__"),
+//                        operandsArray
+//                    )
+//                )
+//            )
+//        )
+//
+//        val operationArray = ImmutableArrayValueImpl(
+//            arrayOf<Value>(
+//                ImmutableLongValueImpl(1),
+//                operationAndOperandsArray
+//            )
+//        )
+//
+//        val outerWrapper = ImmutableArrayValueImpl(
+//            arrayOf<Value>(
+//                ImmutableLongValueImpl(2),
+//                operationArray
+//            )
+//        )
+//
+//        val packer = MessagePack.newDefaultBufferPacker()
+//        packer.packValue(ImmutableArrayValueImpl(arrayOf(outerWrapper)))
+//
+//        // When
+//        val syftMessage = packer.toByteArray().mapToSyftMessage()
+//
+//        // Then
+//        assertTrue(syftMessage is SyftMessage.ExecuteCommand)
+//        assertEquals(expected, syftMessage)
+//    }
+
     @Test
-    fun `Given a msgpack byte array containing an Add operation and two tensors the mapper returns the corresponding SyftMessage`() {
-        // Given
-        val tensorAsBytes = ByteArray(0)
-        print(tensorAsBytes.contentToString())
-        val tensor1 = SyftTensor(6830, tensorAsBytes.contentToString().toByteArray())
-        val tensor2 = SyftTensor(1234, tensorAsBytes.contentToString().toByteArray())
-        val expected = SyftMessage.ExecuteCommand(SyftCommand.AddTensors(listOf(tensor1, tensor2)))
+    fun `Given a msgpack byte array containing an Add operation and two pointers the mapper returns the corresponding SyftMessage`() {
+        val tensorPointer1 = SyftOperand.SyftTensorPointer(6830)
+        val tensorPointer2 = SyftOperand.SyftTensorPointer(1234)
+        val expected = SyftMessage.ExecuteCommand(SyftCommand.Add(listOf(tensorPointer1, tensorPointer2)))
 
-        val tensor1Array = ImmutableArrayValueImpl(
+        val pointer1Array = ImmutableArrayValueImpl(
             arrayOf<Value>(
-                ImmutableLongValueImpl(0),
+                ImmutableLongValueImpl(11), // Type Pointer
                 ImmutableArrayValueImpl(
                     arrayOf<Value>(
-                        ImmutableLongValueImpl(6830),
-                        ImmutableStringValueImpl(tensorAsBytes.contentToString())
+                        ImmutableLongValueImpl(9999),
+                        ImmutableLongValueImpl(6830)
                     )
                 )
             )
         )
 
-        val tensor2Array = ImmutableArrayValueImpl(
+        val pointer2Array = ImmutableArrayValueImpl(
             arrayOf<Value>(
-                ImmutableLongValueImpl(0),
+                ImmutableLongValueImpl(11), // Type Pointer
                 ImmutableArrayValueImpl(
                     arrayOf<Value>(
-                        ImmutableLongValueImpl(1234),
-                        ImmutableStringValueImpl(tensorAsBytes.contentToString())
+                        ImmutableLongValueImpl(8888),
+                        ImmutableLongValueImpl(1234)
                     )
                 )
             )
         )
 
-        val operandsArray = ImmutableArrayValueImpl(
+        val otherPointersWrapper = ImmutableArrayValueImpl(
             arrayOf<Value>(
                 ImmutableLongValueImpl(2),
                 ImmutableArrayValueImpl(
                     arrayOf<Value>(
-                        tensor1Array, tensor2Array
+                        pointer2Array
                     )
                 )
             )
@@ -108,21 +190,26 @@ class MappersKtTest {
                 ImmutableArrayValueImpl(
                     arrayOf<Value>(
                         ImmutableStringValueImpl("__add__"),
-                        operandsArray
+                        pointer1Array,
+                        otherPointersWrapper
                     )
                 )
             )
         )
 
-        val operationArray = ImmutableArrayValueImpl(arrayOf<Value>(
-            ImmutableLongValueImpl(1),
-            operationAndOperandsArray
-        ))
+        val operationArray = ImmutableArrayValueImpl(
+            arrayOf<Value>(
+                ImmutableLongValueImpl(1), // CMD
+                operationAndOperandsArray
+            )
+        )
 
-        val outerWrapper = ImmutableArrayValueImpl(arrayOf<Value>(
-            ImmutableLongValueImpl(2),
-            operationArray
-        ))
+        val outerWrapper = ImmutableArrayValueImpl(
+            arrayOf<Value>(
+                ImmutableLongValueImpl(2),
+                operationArray
+            )
+        )
 
         val packer = MessagePack.newDefaultBufferPacker()
         packer.packValue(ImmutableArrayValueImpl(arrayOf(outerWrapper)))

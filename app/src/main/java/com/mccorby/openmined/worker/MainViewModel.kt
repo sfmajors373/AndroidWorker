@@ -16,7 +16,7 @@ class MainViewModel(
 ) : ViewModel() {
 
     val syftMessageState = MutableLiveData<SyftMessage>()
-    val syftTensorState = MutableLiveData<SyftTensor>()
+    val syftTensorState = MutableLiveData<SyftOperand.SyftTensor>()
     val viewState = MutableLiveData<String>()
 
     private val compositeDisposable = CompositeDisposable()
@@ -44,18 +44,26 @@ class MainViewModel(
     }
 
     private fun startListeningToMessages() {
-        val disposable = syftRepository.onNewMessage()
+        val messageDisposable = syftRepository.onNewMessage()
             .map { processNewMessage(it) }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe()
-        compositeDisposable.add(disposable)
+
+        val statusDisposable = syftRepository.onStatusChange()
+            .map { viewState.postValue(it) }
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe()
+
+        compositeDisposable.addAll(messageDisposable, statusDisposable)
     }
 
     private fun processNewMessage(newSyftMessage: SyftMessage) {
         Log.d("MainActivity", "Received new SyftMessage at $newSyftMessage")
         when (newSyftMessage) {
             is SyftMessage.SetObject -> {
+                syftRepository.setObject(newSyftMessage.objectToSet as SyftOperand.SyftTensor)
                 syftTensorState.postValue(newSyftMessage.objectToSet)
             }
             is SyftMessage.ExecuteCommand -> {
@@ -67,12 +75,25 @@ class MainViewModel(
         }
     }
 
-    private fun createCommandEvent(syftMessage: SyftMessage.ExecuteCommand): SyftTensor {
+    private fun createCommandEvent(syftMessage: SyftMessage.ExecuteCommand): SyftOperand.SyftTensor {
         // TODO This should be done by a domain component
         return when (syftMessage.command) {
-            is SyftCommand.AddTensors -> {
-                // TODO Lots of assumptions here! Just for test sake
-                mlFramework.add(syftMessage.command.tensors[0], syftMessage.command.tensors[1])
+            is SyftCommand.Add -> {
+                // TODO Lots of assumptions here! Just for test sake. We are only adding two tensors
+                when (syftMessage.command.tensors[0]) {
+                    is SyftOperand.SyftTensor -> {
+                        mlFramework.add(
+                            syftMessage.command.tensors[0] as SyftOperand.SyftTensor,
+                            syftMessage.command.tensors[1] as SyftOperand.SyftTensor
+                        )
+                    }
+                    is SyftOperand.SyftTensorPointer -> {
+                        mlFramework.add(
+                            syftRepository.getObject(syftMessage.command.tensors[0].id),
+                            syftRepository.getObject(syftMessage.command.tensors[1].id)
+                        )
+                    }
+                }
             }
             else -> {
                 TODO("${syftMessage.command} not yet implemented")

@@ -4,18 +4,18 @@ package com.mccorby.openmined.worker.domain
 sealed class SyftMessage {
     data class ExecuteCommand(val command: SyftCommand) : SyftMessage() // And a list of tensors?
 
-    data class SetObject(val objectToSet: SyftTensor): SyftMessage() {
+    data class SetObject(val objectToSet: SyftOperand): SyftMessage() {
         override fun equals(other: Any?): Boolean {
             return objectToSet.id == (other as SetObject).objectToSet.id
         }
     }
     data class RespondToObjectRequest(val objectToSet: Any): SyftMessage()
-    data class DeleteObject(val objectToSet: Any): SyftMessage()
+    data class DeleteObject(val objectToDelete: Long): SyftMessage()
     data class ClientResponse(val tensorPointerId: Long): SyftMessage()
 }
 
 sealed class SyftCommand {
-    data class AddPointers(val tensorPointers: List<SyftTensorId>) : SyftCommand()
-    data class AddTensors(val tensors: List<SyftTensor>) : SyftCommand()
-    data class Result(val result: SyftTensor?, val desc: String?): SyftCommand()
+    data class AddPointers(val tensorPointers: List<SyftOperand.SyftTensorPointer>) : SyftCommand()
+    data class Add(val tensors: List<SyftOperand>) : SyftCommand()
+    data class Result(val result: SyftOperand.SyftTensor?, val desc: String?): SyftCommand()
 }
