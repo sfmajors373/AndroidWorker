@@ -101,6 +101,7 @@ fun unpackCommand(operands: List<Value>): OperationDto {
     // TODO Check the type of the list of operands. Would it be possible to receive just one element and not a list?
     val listOfOperands = operands[0].asArrayValue().drop(1)[0].asArrayValue()
     val command = listOfOperands[0].asStringValue().asString()
+
     return when (command) {
         CMD_ADD -> {
             val operationDto = OperationDto(op = CMD, command = command)
@@ -141,7 +142,7 @@ private fun mapTensor(streamToDecode: ArrayValue): TensorDto {
             }
             1 -> {
                 val listValues = value.asArrayValue().toList()
-                tensorDto.id = listValues[0].asIntegerValue().toInt()
+                tensorDto.id = listValues[0].asNumberValue().toLong()
                 tensorDto.data = listValues[1].asStringValue().asByteArray()
             }
             2 -> {
@@ -195,7 +196,7 @@ class OperationDto(
 }
 
 class TensorDto {
-    var id: Int = 0
+    var id: Long = 0
     var data: ByteArray = byteArrayOf()
 
     override fun toString(): String {

@@ -4,7 +4,11 @@ package com.mccorby.openmined.worker.domain
 sealed class SyftMessage {
     data class ExecuteCommand(val command: SyftCommand) : SyftMessage() // And a list of tensors?
 
-    data class SetObject(val objectToSet: SyftTensor): SyftMessage()
+    data class SetObject(val objectToSet: SyftTensor): SyftMessage() {
+        override fun equals(other: Any?): Boolean {
+            return objectToSet.id == (other as SetObject).objectToSet.id
+        }
+    }
     data class RespondToObjectRequest(val objectToSet: Any): SyftMessage()
     data class DeleteObject(val objectToSet: Any): SyftMessage()
     data class ClientResponse(val tensorPointerId: Long): SyftMessage()
