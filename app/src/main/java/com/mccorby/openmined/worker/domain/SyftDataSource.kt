@@ -6,7 +6,7 @@ import io.reactivex.Observable
 interface SyftDataSource {
     fun connect()
     fun disconnect()
-    fun sendMessage(syftMessage: SyftMessage)
+    fun sendOperationAck(syftMessage: SyftMessage)
     fun onNewMessage(): Flowable<SyftMessage>
     fun onStatusChanged(): Flowable<String>
 }

@@ -54,7 +54,7 @@ class SyftOkHttpWebSocketDataSource(private val webSocketUrl: String) : SyftData
     override fun disconnect() {
     }
 
-    override fun sendMessage(syftMessage: SyftMessage) {
+    override fun sendOperationAck(syftMessage: SyftMessage) {
         ws.send(syftMessage.mapToString())
     }
 

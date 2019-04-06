@@ -10,7 +10,10 @@ import io.reactivex.processors.PublishProcessor
 import io.socket.client.IO
 import io.socket.client.Socket
 
-private const val SEND_NEW_MESSAGE = "client_new_message"
+// This client finished the operation and sends an ACK to the server
+private const val SEND_OPERATION_ACK = "client_ack"
+// This client sends the result of a request, i.e., when the server requests x_ptr.get()
+private const val SEND_RESULT = "cilent_send_result"
 private const val SEND_CLIENT_ID = "client_id"
 
 private const val TAG = "SyftWebSocketDataSource"
@@ -50,11 +53,11 @@ class SyftWebSocketDataSource(private val webSocketUrl: String, private val clie
         socket.disconnect()
     }
 
-    override fun sendMessage(syftMessage: SyftMessage) {
+    override fun sendOperationAck(syftMessage: SyftMessage) {
         // Simplify, Serialize, and Compress
         // TODO Add mapper from SyftMessage2ByteArray?.
         Log.d(TAG, "Sending message $syftMessage")
-        socket.emit(SEND_NEW_MESSAGE, syftMessage.mapToString())
+        socket.emit(SEND_OPERATION_ACK, syftMessage.mapToString())
     }
 
     override fun onNewMessage(): Flowable<SyftMessage> = publishProcessor.onBackpressureBuffer()

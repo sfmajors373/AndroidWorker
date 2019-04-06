@@ -15,7 +15,7 @@ class SyftRepository(private val syftDataSource: SyftDataSource, private val ten
     fun onStatusChange(): Flowable<String> = syftDataSource.onStatusChanged()
 
     fun sendMessage(syftMessage: SyftMessage) {
-        syftDataSource.sendMessage(syftMessage)
+        syftDataSource.sendOperationAck(syftMessage)
     }
 
     fun onNewMessage(): Flowable<SyftMessage> = syftDataSource.onNewMessage()
@@ -27,7 +27,7 @@ class SyftRepository(private val syftDataSource: SyftDataSource, private val ten
     fun setObject(objectToSet: SyftOperand.SyftTensor) {
         // Create id for this tensor
         tensorMap[objectToSet.id] = objectToSet
-//        sendMessage(SyftMessage.ClientResponse(id))
+//        sendOperationAck(SyftMessage.ClientResponse(id))
     }
 
     fun getObject(tensorId: SyftTensorId): SyftOperand.SyftTensor {

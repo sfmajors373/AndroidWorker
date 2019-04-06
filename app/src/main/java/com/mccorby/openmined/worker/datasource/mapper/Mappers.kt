@@ -4,9 +4,7 @@ import android.util.Log
 import com.mccorby.openmined.worker.domain.SyftCommand
 import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftOperand
-import org.msgpack.core.MessageBufferPacker
 import org.msgpack.core.MessagePack
-import org.msgpack.core.MessagePacker
 import org.msgpack.value.ArrayValue
 import org.msgpack.value.Value
 
@@ -39,15 +37,11 @@ fun SyftMessage.mapToString(): String {
     val packer = MessagePack.newDefaultBufferPacker()
     // TODO packer.packBlahBlahBlha
     return when (this) {
-        is SyftMessage.ExecuteCommand -> mapExecuteCommand(packer, this)
+        is SyftMessage.OperationAck -> packer.packString(SyftMessage.OperationAck.toString())
         else -> {
             packer
         }
     }.toString()
-}
-
-private fun mapExecuteCommand(packer: MessageBufferPacker, syftMessage: SyftMessage.ExecuteCommand): MessagePacker {
-    return packer.packString(syftMessage.command.toString())
 }
 
 fun ByteArray.mapToSyftMessage(): SyftMessage {

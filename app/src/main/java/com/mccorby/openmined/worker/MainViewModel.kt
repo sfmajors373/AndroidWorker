@@ -65,6 +65,7 @@ class MainViewModel(
             is SyftMessage.SetObject -> {
                 syftRepository.setObject(newSyftMessage.objectToSet as SyftOperand.SyftTensor)
                 syftTensorState.postValue(newSyftMessage.objectToSet)
+                syftRepository.sendMessage(SyftMessage.OperationAck)
             }
             is SyftMessage.ExecuteCommand -> {
                 syftTensorState.postValue(createCommandEvent(newSyftMessage))
@@ -88,10 +89,13 @@ class MainViewModel(
                         )
                     }
                     is SyftOperand.SyftTensorPointer -> {
-                        mlFramework.add(
+                        val result = mlFramework.add(
                             syftRepository.getObject(syftMessage.command.tensors[0].id),
                             syftRepository.getObject(syftMessage.command.tensors[1].id)
                         )
+                        // TODO The operation has a list of ids for the pointers to the results
+                        syftRepository.sendMessage(SyftMessage.OperationAck)
+                        result
                     }
                 }
             }

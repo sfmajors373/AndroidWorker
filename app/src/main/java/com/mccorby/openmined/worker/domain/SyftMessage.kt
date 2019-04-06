@@ -12,6 +12,11 @@ sealed class SyftMessage {
     data class RespondToObjectRequest(val objectToSet: Any): SyftMessage()
     data class DeleteObject(val objectToDelete: Long): SyftMessage()
     data class ClientResponse(val tensorPointerId: Long): SyftMessage()
+    object OperationAck: SyftMessage() {
+        override fun toString(): String {
+            return "ACK"
+        }
+    }
 }
 
 sealed class SyftCommand {
