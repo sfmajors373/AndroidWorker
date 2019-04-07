@@ -4,7 +4,6 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import com.mccorby.openmined.worker.datasource.SyftOkHttpWebSocketDataSource
 import com.mccorby.openmined.worker.datasource.SyftWebSocketDataSource
 import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftOperand

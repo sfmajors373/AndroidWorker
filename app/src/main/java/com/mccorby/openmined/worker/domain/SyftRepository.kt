@@ -15,7 +15,11 @@ class SyftRepository(private val syftDataSource: SyftDataSource, private val ten
     fun onStatusChange(): Flowable<String> = syftDataSource.onStatusChanged()
 
     fun sendMessage(syftMessage: SyftMessage) {
-        syftDataSource.sendOperationAck(syftMessage)
+        // TODO This should be done by the use case
+        when (syftMessage) {
+            is SyftMessage.OperationAck -> syftDataSource.sendOperationAck(syftMessage)
+            is SyftMessage.RespondToObjectRequest -> syftDataSource.sendMessage(syftMessage)
+        }
     }
 
     fun onNewMessage(): Flowable<SyftMessage> = syftDataSource.onNewMessage()
@@ -27,14 +31,19 @@ class SyftRepository(private val syftDataSource: SyftDataSource, private val ten
     fun setObject(objectToSet: SyftOperand.SyftTensor) {
         // Create id for this tensor
         tensorMap[objectToSet.id] = objectToSet
-//        sendOperationAck(SyftMessage.ClientResponse(id))
+    }
+
+    fun setObject(tensorId: SyftTensorId, objectToSet: SyftOperand.SyftTensor) {
+        // Create id for this tensor
+        tensorMap[tensorId] = objectToSet
     }
 
     fun getObject(tensorId: SyftTensorId): SyftOperand.SyftTensor {
         val tensor = tensorMap[tensorId]
-        if (tensor != null) {
-            return tensor
-        }
-        throw IllegalArgumentException("Tensor $tensorId not found")
+        return tensor ?: throw IllegalArgumentException("Tensor $tensorId not found")
+    }
+
+    fun removeObject(objectToDelete: Long) {
+        tensorMap.remove(objectToDelete)
     }
 }

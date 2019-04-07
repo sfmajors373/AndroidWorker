@@ -58,6 +58,10 @@ class SyftOkHttpWebSocketDataSource(private val webSocketUrl: String) : SyftData
         ws.send(syftMessage.mapToString())
     }
 
+    override fun sendMessage(syftMessage: SyftMessage) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override fun onNewMessage(): Flowable<SyftMessage> {
         return publishProcessor.onBackpressureBuffer()
     }

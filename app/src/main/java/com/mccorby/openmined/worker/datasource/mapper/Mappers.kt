@@ -6,14 +6,18 @@ import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftOperand
 import org.msgpack.core.MessagePack
 import org.msgpack.value.ArrayValue
+import org.msgpack.value.ImmutableArrayValue
+import org.msgpack.value.ImmutableRawValue
 import org.msgpack.value.Value
+import org.msgpack.value.impl.*
 
 private const val TAG = "MapperDS"
 
 // These are values defined in PySyft
 internal const val COMPRESSION_ENABLED = 49
+internal const val NO_COMPRESSION = 40
+
 // Operations in PySyft
-internal const val UNDEFINED = 0
 internal const val CMD = 1
 internal const val OBJ = 2
 internal const val OBJ_REQ = 3
@@ -44,6 +48,32 @@ fun SyftMessage.mapToString(): String {
     }.toString()
 }
 
+fun SyftMessage.mapToByteArray(): ByteArray {
+    // Assuming we are sending just a tensor
+    // (0, (91189711850, b"numpy stuff", None, None, None, None))
+    val packer = MessagePack.newDefaultBufferPacker()
+
+    val operationArray = ImmutableArrayValueImpl(
+        arrayOf<Value>(
+            ImmutableLongValueImpl(TYPE_TENSOR.toLong()),
+            ImmutableArrayValueImpl(
+                arrayOf<Value>(
+                    ImmutableLongValueImpl((this as SyftMessage.RespondToObjectRequest).objectToSend.id),
+                    ImmutableStringValueImpl(objectToSend.byteArray),
+                    // TODO Fill these values!
+                    ImmutableNilValueImpl.get(),
+                    ImmutableNilValueImpl.get(),
+                    ImmutableNilValueImpl.get(),
+                    ImmutableNilValueImpl.get()
+                )
+            )
+        )
+    )
+
+    packer.packValue(operationArray)
+    return packer.toByteArray()
+}
+
 fun ByteArray.mapToSyftMessage(): SyftMessage {
     // (tensor.id, tensor_bin, chain, grad_chain, tags, tensor.description)
     // Remove first byte indicating if stream has been compressed or not
@@ -69,11 +99,26 @@ private fun unpackOperation(operationArray: ArrayValue): OperationDto {
     return when (operation) {
         OBJ -> unpackObjectSet(operands)
         CMD -> unpackCommand(operands)
-        OBJ_DEL -> OperationDto(OBJ_DEL, "", emptyList())
+        OBJ_DEL -> unpackObjectDelete(operands)
+        OBJ_REQ -> unpackObjectRequest(operands)
         else -> {
             TODO("Operation $operation not yet implemented!")
         }
     }
+}
+
+fun unpackObjectDelete(operands: List<Value>): OperationDto {
+    val operand = operands[0].asNumberValue().toLong()
+    val pointerDto = OperandDto.TensorPointerDto()
+    pointerDto.id = operand
+    return OperationDto(OBJ_DEL, value=listOf((pointerDto)))
+}
+
+fun unpackObjectRequest(operands: List<Value>): OperationDto {
+    val operand = operands[0].asNumberValue().toLong()
+    val pointerDto = OperandDto.TensorPointerDto()
+    pointerDto.id = operand
+    return OperationDto(OBJ_REQ, value=listOf((pointerDto)))
 }
 
 fun unpackCommand(operands: List<Value>): OperationDto {
@@ -108,10 +153,10 @@ fun unpackCommand(operands: List<Value>): OperationDto {
             val op2 = opWrapper[1].asArrayValue().drop(1)[0].asArrayValue()[0].asArrayValue()
             tensorList.add(unpackOperandByType(op1))
             tensorList.add(unpackOperandByType(op2))
-//            flatListOfOperands.drop(1)[0].asArrayValue().drop(1)[0].asArrayValue().forEach {
-//                tensorList.add(unpackOperandByType(it.asArrayValue()))
-//            }
+            val resultPointer = listOfOperands[1].asArrayValue()[1].asArrayValue()
+
             operationDto.value = tensorList.toList()
+            operationDto.returnId = resultPointer.map { it.asNumberValue().toLong() }
             operationDto
         }
         else -> {
@@ -177,10 +222,13 @@ private fun mapOperation(operationDto: OperationDto): SyftMessage {
             val listOfSyftOperands = operationDto.value.map {
                 mapOperandToDomain(it)
             }
-            SyftMessage.ExecuteCommand(SyftCommand.Add(listOfSyftOperands))
+            SyftMessage.ExecuteCommand(SyftCommand.Add(listOfSyftOperands, operationDto.returnId))
         }
         OBJ_DEL -> {
-            SyftMessage.DeleteObject(1233)
+            SyftMessage.DeleteObject((operationDto.value[0] as OperandDto.TensorPointerDto).id)
+        }
+        OBJ_REQ -> {
+            SyftMessage.GetObject((operationDto.value[0] as OperandDto.TensorPointerDto).id)
         }
         else -> {
             throw IllegalArgumentException("Operation ${operationDto.op} not yet supported")
@@ -198,7 +246,8 @@ private fun mapOperandToDomain(dto: OperandDto): SyftOperand {
 class OperationDto(
     var op: Int = 0,
     var command: String = "",
-    var value: List<OperandDto> = mutableListOf()
+    var value: List<OperandDto> = mutableListOf(),
+    var returnId: List<Long> = listOf()
 ) {
     override fun toString(): String {
         return "$op - $command - $value"

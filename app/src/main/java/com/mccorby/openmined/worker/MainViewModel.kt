@@ -70,6 +70,17 @@ class MainViewModel(
             is SyftMessage.ExecuteCommand -> {
                 syftTensorState.postValue(createCommandEvent(newSyftMessage))
             }
+            is SyftMessage.GetObject -> {
+                val tensor = syftRepository.getObject(newSyftMessage.tensorPointerId)
+                viewState.postValue("Server requested tensor with id ${newSyftMessage.tensorPointerId}")
+                // TODO copy should not be necessary. Here set just to make it work. This is a value that should have been already set before
+                syftRepository.sendMessage(SyftMessage.RespondToObjectRequest(tensor.copy(id = newSyftMessage.tensorPointerId)))
+            }
+            is SyftMessage.DeleteObject -> {
+                syftRepository.removeObject(newSyftMessage.objectToDelete)
+                viewState.postValue("Tensor with id ${newSyftMessage.objectToDelete} deleted")
+                syftRepository.sendMessage(SyftMessage.OperationAck)
+            }
             else -> {
                 syftMessageState.postValue(newSyftMessage)
             }
@@ -93,7 +104,9 @@ class MainViewModel(
                             syftRepository.getObject(syftMessage.command.tensors[0].id),
                             syftRepository.getObject(syftMessage.command.tensors[1].id)
                         )
-                        // TODO The operation has a list of ids for the pointers to the results
+                        // Add only expects now a single return id
+                        val resultId = syftMessage.command.resultIds[0]
+                        syftRepository.setObject(resultId, result)
                         syftRepository.sendMessage(SyftMessage.OperationAck)
                         result
                     }

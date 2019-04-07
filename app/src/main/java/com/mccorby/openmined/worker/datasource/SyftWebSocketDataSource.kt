@@ -1,6 +1,8 @@
 package com.mccorby.openmined.worker.datasource
 
 import android.util.Log
+import com.mccorby.openmined.worker.datasource.mapper.NO_COMPRESSION
+import com.mccorby.openmined.worker.datasource.mapper.mapToByteArray
 import com.mccorby.openmined.worker.datasource.mapper.mapToString
 import com.mccorby.openmined.worker.datasource.mapper.mapToSyftMessage
 import com.mccorby.openmined.worker.domain.SyftDataSource
@@ -13,7 +15,7 @@ import io.socket.client.Socket
 // This client finished the operation and sends an ACK to the server
 private const val SEND_OPERATION_ACK = "client_ack"
 // This client sends the result of a request, i.e., when the server requests x_ptr.get()
-private const val SEND_RESULT = "cilent_send_result"
+private const val SEND_RESULT = "client_send_result"
 private const val SEND_CLIENT_ID = "client_id"
 
 private const val TAG = "SyftWebSocketDataSource"
@@ -58,6 +60,12 @@ class SyftWebSocketDataSource(private val webSocketUrl: String, private val clie
         // TODO Add mapper from SyftMessage2ByteArray?.
         Log.d(TAG, "Sending message $syftMessage")
         socket.emit(SEND_OPERATION_ACK, syftMessage.mapToString())
+    }
+
+    override fun sendMessage(syftMessage: SyftMessage) {
+        val byteArray = syftMessage.mapToByteArray()
+        // TODO Compression must be added in the mapper!!
+        socket.emit(SEND_RESULT, byteArrayOf(NO_COMPRESSION.toByte()) + byteArray)
     }
 
     override fun onNewMessage(): Flowable<SyftMessage> = publishProcessor.onBackpressureBuffer()
