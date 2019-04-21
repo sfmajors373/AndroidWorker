@@ -26,7 +26,6 @@ fun SyftOperand.SyftTensor.toINDArray(): INDArray {
     Files.write(path, this.byteArray)
     val npyArray = NpyFile.read(path)
     return Nd4j.create(npyArray.asFloatArray())
-//    return Nd4j.createNpyFromByteArray(this.byteArray)
 }
 
 class DL4JOperations : Operations {

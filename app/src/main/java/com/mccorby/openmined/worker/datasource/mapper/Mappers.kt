@@ -1,40 +1,59 @@
 package com.mccorby.openmined.worker.datasource.mapper
 
 import android.util.Log
+import com.mccorby.openmined.worker.datasource.mapper.CommandConstants.CMD_ADD
+import com.mccorby.openmined.worker.datasource.mapper.CompressionConstants.COMPRESSION_ENABLED
+import com.mccorby.openmined.worker.datasource.mapper.OperationConstants.CMD
+import com.mccorby.openmined.worker.datasource.mapper.OperationConstants.OBJ
+import com.mccorby.openmined.worker.datasource.mapper.OperationConstants.OBJ_DEL
+import com.mccorby.openmined.worker.datasource.mapper.OperationConstants.OBJ_REQ
+import com.mccorby.openmined.worker.datasource.mapper.TypeConstants.TYPE_TENSOR
+import com.mccorby.openmined.worker.datasource.mapper.TypeConstants.TYPE_TENSOR_POINTER
 import com.mccorby.openmined.worker.domain.SyftCommand
 import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftOperand
 import org.msgpack.core.MessagePack
 import org.msgpack.value.ArrayValue
-import org.msgpack.value.ImmutableArrayValue
-import org.msgpack.value.ImmutableRawValue
 import org.msgpack.value.Value
-import org.msgpack.value.impl.*
+import org.msgpack.value.ValueType
+import org.msgpack.value.impl.ImmutableArrayValueImpl
+import org.msgpack.value.impl.ImmutableLongValueImpl
+import org.msgpack.value.impl.ImmutableNilValueImpl
+import org.msgpack.value.impl.ImmutableStringValueImpl
 
 private const val TAG = "MapperDS"
 
 // These are values defined in PySyft
-internal const val COMPRESSION_ENABLED = 49
-internal const val NO_COMPRESSION = 40
+internal object CompressionConstants {
+    const val COMPRESSION_ENABLED = 49
+    const val NO_COMPRESSION = 40
+}
 
 // Operations in PySyft
-internal const val CMD = 1
-internal const val OBJ = 2
-internal const val OBJ_REQ = 3
-internal const val OBJ_DEL = 4
-internal const val EXCEPTION = 5
-internal const val IS_NONE = 6
-internal const val GET_SHAPE = 7
-internal const val SEARCH = 8
+internal object OperationConstants {
+    internal const val CMD = 1
+    internal const val OBJ = 2
+    internal const val OBJ_REQ = 3
+    internal const val OBJ_DEL = 4
+    internal const val EXCEPTION = 5
+    internal const val IS_NONE = 6
+    internal const val GET_SHAPE = 7
+    internal const val SEARCH = 8
+}
+
 
 // Types are encoded in the stream sent from PySyft
-internal const val TYPE_TENSOR = 0
-internal const val TYPE_TUPLE = 1
-internal const val TYPE_LIST = 2
-internal const val TYPE_TENSOR_POINTER = 11
+internal object TypeConstants {
+    const val TYPE_TENSOR = 0
+    const val TYPE_TUPLE = 2
+    const val TYPE_LIST = 3
+    const val TYPE_TENSOR_POINTER = 11
+}
 
 // Commands
-private const val CMD_ADD = "__add__"
+internal object CommandConstants {
+    const val CMD_ADD = "__add__"
+}
 
 // TODO Probably Json or something similar. The name should reflect the format
 fun SyftMessage.mapToString(): String {
@@ -86,8 +105,6 @@ fun ByteArray.mapToSyftMessage(): SyftMessage {
 
     val unpacker = MessagePack.newDefaultUnpacker(byteArray)
     val streamToDecode = unpacker.unpackValue()
-    val outerType = streamToDecode.asArrayValue()[0].asIntegerValue().asInt()
-    Log.d(TAG, "Outer type (should be 2) -> $outerType")
     val operationDto = unpackOperation(streamToDecode.asArrayValue()[1].asArrayValue())
 
     return mapOperation(operationDto)
@@ -95,7 +112,7 @@ fun ByteArray.mapToSyftMessage(): SyftMessage {
 
 private fun unpackOperation(operationArray: ArrayValue): OperationDto {
     val operation = operationArray[0].asIntegerValue().asInt()
-    val operands = operationArray.drop(1)
+    val operands = operationArray[1]
     return when (operation) {
         OBJ -> unpackObjectSet(operands)
         CMD -> unpackCommand(operands)
@@ -107,56 +124,48 @@ private fun unpackOperation(operationArray: ArrayValue): OperationDto {
     }
 }
 
-fun unpackObjectDelete(operands: List<Value>): OperationDto {
-    val operand = operands[0].asNumberValue().toLong()
+private fun unpackObjectSet(operands: Value): OperationDto {
+    val data = unpackOperandByType(operands as ArrayValue)
+    return OperationDto(OBJ, "", listOf(data))
+}
+
+private fun unpackObjectDelete(operands: Value): OperationDto {
+    val operand = operands.asNumberValue().toLong()
     val pointerDto = OperandDto.TensorPointerDto()
     pointerDto.id = operand
     return OperationDto(OBJ_DEL, value=listOf((pointerDto)))
 }
 
-fun unpackObjectRequest(operands: List<Value>): OperationDto {
-    val operand = operands[0].asNumberValue().toLong()
+fun unpackObjectRequest(operands: Value): OperationDto {
+    val operand = operands.asNumberValue().toLong()
     val pointerDto = OperandDto.TensorPointerDto()
     pointerDto.id = operand
     return OperationDto(OBJ_REQ, value=listOf((pointerDto)))
 }
 
-fun unpackCommand(operands: List<Value>): OperationDto {
-    // operands comes in the form (2, listOfOperands), with the "2" meaning that a tuple comes next.
-    // At this point we should have a list with the form [2, [command, [list of operands]]
-    // TODO Check the type of the list of operands. Would it be possible to receive just one element and not a list?
-    val listOfOperands = operands[0].asArrayValue().drop(1)[0].asArrayValue()
-    val flatListOfOperands = if (listOfOperands[0].isArrayValue) {
-        listOfOperands[0].asArrayValue().drop(1)[0]
-    } else {
-        listOfOperands
-    }.asArrayValue()
-    val command = flatListOfOperands[0].asStringValue().asString()
+fun unpackCommand(operands: Value): OperationDto {
+    // At this point we should have a list with the form [2, [command, [first_operand][list of other operands]][return_ids]
 
-    return when (command) {
+    // [2,[[2,["__add__",[11,[9999,6830]],[2,[[11,[9999,1234]]]]]],[3,[7766]]]]
+    val operationComponents = operands.asArrayValue()[1].asArrayValue()
+    val operation = operationComponents[0].asArrayValue()[1].asArrayValue() // ["__add__",[11,[9999,6830]],[2,[[11,[9999,1234]]]]]
+    val returnIds = operationComponents[1].asArrayValue() // [3, [7766]]
+
+    return when (val command = operation[0].asStringValue().asString()) {
         CMD_ADD -> {
             val operationDto = OperationDto(op = CMD, command = command)
-            // ["__add__",[2,[[0,[98058441856,"tensor_data",null,null,null,null]],[0,[31147267379,"tensor_data",null,null,null,null]]]]]
-            // TODO Assuming we are receiving tensors... not always the case. This is just a start!
-            // TODO Forcing how pointers are received. This has to be completely redone
-            // ["__add__",
-            //    [11,[35342533178,17228400254,"phone",null,[5]]],
-            //    [2,[
-            //        [11,[31778841511,91035389282,"phone",null,[5]]]]
-            //        ]
-            //    ,[5,{}]
-            //]
             val tensorList = mutableListOf<OperandDto>()
-            // Drop operation __add___
-            val opWrapper = flatListOfOperands.drop(1)
-            val op1 = opWrapper[0].asArrayValue()
-            val op2 = opWrapper[1].asArrayValue().drop(1)[0].asArrayValue()[0].asArrayValue()
+            val op1 = operation[1].asArrayValue()
+            val op2 = operation[2].asArrayValue()[1]
             tensorList.add(unpackOperandByType(op1))
-            tensorList.add(unpackOperandByType(op2))
-            val resultPointer = listOfOperands[1].asArrayValue()[1].asArrayValue()
+
+            op2.asArrayValue().map {
+                val operand = unpackOperandByType(it.asArrayValue())
+                tensorList.add(operand)
+            }
 
             operationDto.value = tensorList.toList()
-            operationDto.returnId = resultPointer.map { it.asNumberValue().toLong() }
+            operationDto.returnId = returnIds[1].asArrayValue().map { it.asNumberValue().toLong() }
             operationDto
         }
         else -> {
@@ -183,12 +192,6 @@ private fun mapTensorPointer(streamToDecode: ArrayValue): OperandDto.TensorPoint
     tensorDto.id = streamToDecode[1].asNumberValue().toLong()
     // TODO The rest of attributes will come later
     return tensorDto
-}
-
-private fun unpackObjectSet(operands: List<Value>): OperationDto {
-    val unpackedOperands = operands[0].asArrayValue()
-    val data = unpackOperandByType(unpackedOperands)
-    return OperationDto(OBJ, "", listOf(data))
 }
 
 private fun mapTensor(streamToDecode: ArrayValue): OperandDto {

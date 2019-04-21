@@ -1,7 +1,7 @@
 package com.mccorby.openmined.worker.datasource
 
 import android.util.Log
-import com.mccorby.openmined.worker.datasource.mapper.NO_COMPRESSION
+import com.mccorby.openmined.worker.datasource.mapper.CompressionConstants.NO_COMPRESSION
 import com.mccorby.openmined.worker.datasource.mapper.mapToByteArray
 import com.mccorby.openmined.worker.datasource.mapper.mapToString
 import com.mccorby.openmined.worker.datasource.mapper.mapToSyftMessage
