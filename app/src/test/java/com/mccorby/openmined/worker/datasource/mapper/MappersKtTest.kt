@@ -151,13 +151,19 @@ class MappersKtTest {
     }
 
     private fun packOperation(
+
         operation: String,
         pointer: ImmutableArrayValueImpl,
         secondOperands: ImmutableArrayValueImpl
     ): ImmutableArrayValueImpl {
+        // [18,["__add__"]]
         return ImmutableArrayValueImpl(
             arrayOf<Value>(
-                ImmutableStringValueImpl(operation),
+                ImmutableArrayValueImpl(
+                    arrayOf<Value>(
+                        ImmutableLongValueImpl(18),
+                        ImmutableArrayValueImpl(arrayOf(ImmutableStringValueImpl(operation))))
+                ),
                 pointer,
                 secondOperands
             )

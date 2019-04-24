@@ -29,20 +29,6 @@ class MainViewModel(
         }
     }
 
-    fun sendMessage() {
-        GlobalScope.launch {
-            syftRepository.sendMessage(
-                SyftMessage.ExecuteCommand(
-                    SyftCommand.Result(
-                        null,
-                        desc = "This would be a result"
-                    )
-                )
-            )
-            viewState.postValue("Message sent")
-        }
-    }
-
     private fun startListeningToMessages() {
         val messageDisposable = syftRepository.onNewMessage()
             .map { processNewMessage(it) }
@@ -91,7 +77,6 @@ class MainViewModel(
         // TODO This should be done by a domain component
         return when (syftMessage.command) {
             is SyftCommand.Add -> {
-                // TODO Lots of assumptions here! Just for test sake. We are only adding two tensors
                 when (syftMessage.command.tensors[0]) {
                     is SyftOperand.SyftTensor -> {
                         mlFramework.add(

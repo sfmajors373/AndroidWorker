@@ -151,7 +151,7 @@ fun unpackCommand(operands: Value): OperationDto {
     val operation = operationComponents[0].asArrayValue()[1].asArrayValue() // ["__add__",[11,[9999,6830]],[2,[[11,[9999,1234]]]]]
     val returnIds = operationComponents[1].asArrayValue() // [3, [7766]]
 
-    return when (val command = operation[0].asStringValue().asString()) {
+    return when (val command = unpackCommand(operation)) { // [18,["__add__"]]
         CMD_ADD -> {
             val operationDto = OperationDto(op = CMD, command = command)
             val tensorList = mutableListOf<OperandDto>()
@@ -173,6 +173,10 @@ fun unpackCommand(operands: Value): OperationDto {
         }
     }
 }
+
+// [18,["__add__"]]
+private fun unpackCommand(operation: ArrayValue) =
+    operation[0].asArrayValue()[1].asArrayValue()[0].asStringValue().asString()
 
 private fun unpackOperandByType(streamToDecode: ArrayValue): OperandDto {
     val type = streamToDecode[0].asIntegerValue().toInt()

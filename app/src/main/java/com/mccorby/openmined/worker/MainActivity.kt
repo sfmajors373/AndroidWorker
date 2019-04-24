@@ -23,7 +23,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         btn_initiate.setOnClickListener { viewModel.initiateCommunication() }
-        btn_sendMessage.setOnClickListener { viewModel.sendMessage() }
 
         injectDependencies()
     }
