@@ -1,6 +1,6 @@
 # Android Worker
 
-The Android Worker is an app that connects to a PySyft worker and performs the operations in its behalf. It is part of a setup that uses a socket server, a socket client and the app itself which is another socket client
+The Android Worker is an app that connects to a PySyft worker and performs the operations on its behalf. It is part of a setup that uses a socket server, a socket client and the app itself which is another socket client
 
 ## Quick start
 
