@@ -1,7 +1,6 @@
 package com.mccorby.openmined.worker.domain
 
 import io.reactivex.Flowable
-import io.reactivex.Observable
 
 interface SyftDataSource {
     fun connect()

@@ -6,7 +6,7 @@ import com.mccorby.openmined.worker.domain.SyftOperand
 class TensorFlowOperations : Operations {
 
     override fun add(tensor1: SyftOperand.SyftTensor, tensor2: SyftOperand.SyftTensor): SyftOperand.SyftTensor {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented")
         // // Let's say graph is an instance of the Graph class
         // // for the computation y = 3 * x
         //

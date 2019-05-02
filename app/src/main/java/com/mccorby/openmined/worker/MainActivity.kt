@@ -43,7 +43,6 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.syftMessageState.observe(this, Observer<SyftMessage> {
             log_area.append(it.toString() + "\n")
-
         })
         viewModel.syftTensorState.observe(this, Observer<SyftOperand.SyftTensor> {
             log_area.append(it!!.toINDArray().toString() + "\n")

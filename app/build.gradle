@@ -4,6 +4,8 @@ apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
 
+apply plugin: 'checkstyle'
+
 android {
     compileSdkVersion 28
     defaultConfig {
@@ -112,6 +114,28 @@ dependencies {
     //This corrects for a junit version conflict.
     configurations.all {
         resolutionStrategy.force 'junit:junit:4.12'
-
     }
+}
+
+configurations {
+    ktlint
+}
+
+task ktlint(type: JavaExec, group: "verification") {
+    description = "Check Kotlin code style."
+    classpath = configurations.ktlint
+    main = "com.pinterest.ktlint.Main"
+    args "src/**/*.kt", "--reporter=plain", "--reporter=checkstyle,output=${buildDir}/ktlint.xml"
+    // see https://github.com/pinterest/ktlint#usage for more
+}
+
+task staticAnalysis(type: GradleBuild) {
+    description 'Run all static analysis tasks'
+    tasks = ['ktlint']
+}
+
+check.dependsOn ktlint
+
+dependencies {
+    ktlint "com.pinterest:ktlint:0.32.0"
 }

@@ -6,9 +6,12 @@ import com.mccorby.openmined.worker.datasource.mapper.mapToSyftMessage
 import com.mccorby.openmined.worker.domain.SyftDataSource
 import com.mccorby.openmined.worker.domain.SyftMessage
 import io.reactivex.Flowable
-import io.reactivex.Observable
 import io.reactivex.processors.PublishProcessor
-import okhttp3.*
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.WebSocket
+import okhttp3.WebSocketListener
 import okio.ByteString
 
 private const val TAG = "SyftOkHttpWebSocketDS"
@@ -59,7 +62,6 @@ class SyftOkHttpWebSocketDataSource(private val webSocketUrl: String) : SyftData
     }
 
     override fun sendMessage(syftMessage: SyftMessage) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun onNewMessage(): Flowable<SyftMessage> {

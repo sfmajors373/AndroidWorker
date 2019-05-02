@@ -1,6 +1,5 @@
 package com.mccorby.openmined.worker.datasource.mapper
 
-import android.util.Log
 import com.mccorby.openmined.worker.datasource.mapper.CommandConstants.CMD_ADD
 import com.mccorby.openmined.worker.datasource.mapper.CompressionConstants.COMPRESSION_ENABLED
 import com.mccorby.openmined.worker.datasource.mapper.OperationConstants.CMD
@@ -15,7 +14,6 @@ import com.mccorby.openmined.worker.domain.SyftOperand
 import org.msgpack.core.MessagePack
 import org.msgpack.value.ArrayValue
 import org.msgpack.value.Value
-import org.msgpack.value.ValueType
 import org.msgpack.value.impl.ImmutableArrayValueImpl
 import org.msgpack.value.impl.ImmutableLongValueImpl
 import org.msgpack.value.impl.ImmutableNilValueImpl
@@ -40,7 +38,6 @@ internal object OperationConstants {
     internal const val GET_SHAPE = 7
     internal const val SEARCH = 8
 }
-
 
 // Types are encoded in the stream sent from PySyft
 internal object TypeConstants {
@@ -133,14 +130,14 @@ private fun unpackObjectDelete(operands: Value): OperationDto {
     val operand = operands.asNumberValue().toLong()
     val pointerDto = OperandDto.TensorPointerDto()
     pointerDto.id = operand
-    return OperationDto(OBJ_DEL, value=listOf((pointerDto)))
+    return OperationDto(OBJ_DEL, value = listOf((pointerDto)))
 }
 
 fun unpackObjectRequest(operands: Value): OperationDto {
     val operand = operands.asNumberValue().toLong()
     val pointerDto = OperandDto.TensorPointerDto()
     pointerDto.id = operand
-    return OperationDto(OBJ_REQ, value=listOf((pointerDto)))
+    return OperationDto(OBJ_REQ, value = listOf((pointerDto)))
 }
 
 fun unpackCommand(operands: Value): OperationDto {
@@ -148,7 +145,8 @@ fun unpackCommand(operands: Value): OperationDto {
 
     // [2,[[2,["__add__",[11,[9999,6830]],[2,[[11,[9999,1234]]]]]],[3,[7766]]]]
     val operationComponents = operands.asArrayValue()[1].asArrayValue()
-    val operation = operationComponents[0].asArrayValue()[1].asArrayValue() // ["__add__",[11,[9999,6830]],[2,[[11,[9999,1234]]]]]
+    val operation =
+        operationComponents[0].asArrayValue()[1].asArrayValue() // ["__add__",[11,[9999,6830]],[2,[[11,[9999,1234]]]]]
     val returnIds = operationComponents[1].asArrayValue() // [3, [7766]]
 
     return when (val command = unpackCommand(operation)) { // [18,["__add__"]]

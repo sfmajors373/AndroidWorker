@@ -3,7 +3,11 @@ package com.mccorby.openmined.worker
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import android.util.Log
-import com.mccorby.openmined.worker.domain.*
+import com.mccorby.openmined.worker.domain.Operations
+import com.mccorby.openmined.worker.domain.SyftCommand
+import com.mccorby.openmined.worker.domain.SyftMessage
+import com.mccorby.openmined.worker.domain.SyftOperand
+import com.mccorby.openmined.worker.domain.SyftRepository
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers

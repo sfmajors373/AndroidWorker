@@ -4,7 +4,7 @@ sealed class SyftMessage {
 
     data class ExecuteCommand(val command: SyftCommand) : SyftMessage() // And a list of tensors?
 
-    data class SetObject(val objectToSet: SyftOperand): SyftMessage() {
+    data class SetObject(val objectToSet: SyftOperand) : SyftMessage() {
 
         override fun equals(other: Any?): Boolean {
             return objectToSet.id == (other as SetObject).objectToSet.id
@@ -15,13 +15,13 @@ sealed class SyftMessage {
         }
     }
 
-    data class RespondToObjectRequest(val objectToSend: SyftOperand.SyftTensor): SyftMessage()
+    data class RespondToObjectRequest(val objectToSend: SyftOperand.SyftTensor) : SyftMessage()
 
-    data class DeleteObject(val objectToDelete: Long): SyftMessage()
+    data class DeleteObject(val objectToDelete: Long) : SyftMessage()
 
-    data class GetObject(val tensorPointerId: SyftTensorId): SyftMessage()
+    data class GetObject(val tensorPointerId: SyftTensorId) : SyftMessage()
 
-    object OperationAck: SyftMessage() {
+    object OperationAck : SyftMessage() {
         override fun toString(): String {
             return "ACK"
         }

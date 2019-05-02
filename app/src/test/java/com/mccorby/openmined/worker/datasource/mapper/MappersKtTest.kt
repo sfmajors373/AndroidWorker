@@ -67,7 +67,6 @@ class MappersKtTest {
 
         val operationAndOperandsArray = packTuple(operation)
 
-
         val resultIdsWrapper = ImmutableArrayValueImpl(
             arrayOf<Value>(
                 ImmutableLongValueImpl(TypeConstants.TYPE_LIST.toLong()),
@@ -75,7 +74,8 @@ class MappersKtTest {
             )
         )
 
-        val operationAndResultWrapper = packTuple(ImmutableArrayValueImpl(arrayOf<Value>(operationAndOperandsArray, resultIdsWrapper)))
+        val operationAndResultWrapper =
+            packTuple(ImmutableArrayValueImpl(arrayOf<Value>(operationAndOperandsArray, resultIdsWrapper)))
 
         val operationArray = ImmutableArrayValueImpl(
             arrayOf<Value>(
@@ -109,10 +109,12 @@ class MappersKtTest {
         val pointerId = 1234L
         val expected = SyftMessage.DeleteObject(pointerId)
 
-        val operation = ImmutableArrayValueImpl(arrayOf<Value>(
-            ImmutableLongValueImpl(OperationConstants.OBJ_DEL.toLong()), // This corresponds to Mappers.OBJ_DEL
-            ImmutableLongValueImpl(pointerId)
-        ))
+        val operation = ImmutableArrayValueImpl(
+            arrayOf<Value>(
+                ImmutableLongValueImpl(OperationConstants.OBJ_DEL.toLong()), // This corresponds to Mappers.OBJ_DEL
+                ImmutableLongValueImpl(pointerId)
+            )
+        )
         val operationWrapper = packTuple(operation)
 
         val packer = MessagePack.newDefaultBufferPacker()
@@ -133,10 +135,12 @@ class MappersKtTest {
         val pointerId = 1234L
         val expected = SyftMessage.GetObject(pointerId)
 
-        val operation = ImmutableArrayValueImpl(arrayOf<Value>(
-            ImmutableLongValueImpl(OperationConstants.OBJ_REQ.toLong()),
-            ImmutableLongValueImpl(pointerId)
-        ))
+        val operation = ImmutableArrayValueImpl(
+            arrayOf<Value>(
+                ImmutableLongValueImpl(OperationConstants.OBJ_REQ.toLong()),
+                ImmutableLongValueImpl(pointerId)
+            )
+        )
         val operationWrapper = packTuple(operation)
 
         val packer = MessagePack.newDefaultBufferPacker()
@@ -162,7 +166,8 @@ class MappersKtTest {
                 ImmutableArrayValueImpl(
                     arrayOf<Value>(
                         ImmutableLongValueImpl(18),
-                        ImmutableArrayValueImpl(arrayOf(ImmutableStringValueImpl(operation))))
+                        ImmutableArrayValueImpl(arrayOf(ImmutableStringValueImpl(operation)))
+                    )
                 ),
                 pointer,
                 secondOperands
