@@ -2,7 +2,6 @@ package com.mccorby.openmined.worker.ui
 
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
-import com.mccorby.openmined.worker.MainViewModel
 import com.mccorby.openmined.worker.domain.Operations
 import com.mccorby.openmined.worker.domain.SyftRepository
 

@@ -1,17 +1,16 @@
-package com.mccorby.openmined.worker
+package com.mccorby.openmined.worker.ui
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import com.mccorby.openmined.worker.R
 import com.mccorby.openmined.worker.datasource.SyftWebSocketDataSource
 import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftOperand
 import com.mccorby.openmined.worker.domain.SyftRepository
-import com.mccorby.openmined.worker.domain.TensorIdGenerator
 import com.mccorby.openmined.worker.framework.DL4JOperations
 import com.mccorby.openmined.worker.framework.toINDArray
-import com.mccorby.openmined.worker.ui.MainViewModelFactory
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -32,8 +31,7 @@ class MainActivity : AppCompatActivity() {
         val clientId = "Android-${System.currentTimeMillis()}"
         val webSocketUrl = "http://10.0.2.2:5000"
         val syftDataSource = SyftWebSocketDataSource(webSocketUrl, clientId)
-        val tensorIdGenerator = TensorIdGenerator()
-        val syftRepository = SyftRepository(syftDataSource, tensorIdGenerator)
+        val syftRepository = SyftRepository(syftDataSource)
         val mlFramework = DL4JOperations()
 
         viewModel = ViewModelProviders.of(

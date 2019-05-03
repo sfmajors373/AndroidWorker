@@ -4,7 +4,7 @@ import io.reactivex.Flowable
 import java.lang.IllegalArgumentException
 
 // The repository allow us to use different types of data sources without requiring modifying the upper layers
-class SyftRepository(private val syftDataSource: SyftDataSource, private val tensorIdGenerator: TensorIdGenerator) {
+class SyftRepository(private val syftDataSource: SyftDataSource) {
 
     private val tensorMap = mutableMapOf<Long, SyftOperand.SyftTensor>()
 

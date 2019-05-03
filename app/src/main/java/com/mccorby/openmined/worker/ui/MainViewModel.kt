@@ -1,4 +1,4 @@
-package com.mccorby.openmined.worker
+package com.mccorby.openmined.worker.ui
 
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
@@ -100,9 +100,6 @@ class MainViewModel(
                         result
                     }
                 }
-            }
-            else -> {
-                TODO("${syftMessage.command} not yet implemented")
             }
         }
     }

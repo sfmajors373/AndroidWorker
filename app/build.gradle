@@ -7,13 +7,14 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'checkstyle'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion Versions.compileSdk
     defaultConfig {
-        applicationId "com.mccorby.openmined.worker"
-        minSdkVersion 26
-        targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
+        applicationId Versions.appId
+        minSdkVersion Versions.minSdk
+        targetSdkVersion Versions.targetSdk
+        versionCode Versions.appVersionCode
+        versionName Versions.appVersionName
+
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         
         multiDexEnabled true
@@ -34,6 +35,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    // Required by DL4J
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/DEPENDENCIES.txt'
@@ -49,71 +51,77 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation('io.socket:socket.io-client:1.0.0') {
+
+    implementation MainApplicationDependencies.kotlin
+    implementation MainApplicationDependencies.coroutines
+    implementation MainApplicationDependencies.appCompat
+    implementation MainApplicationDependencies.rxJava
+    implementation MainApplicationDependencies.rxAndroid
+
+    implementation MainApplicationDependencies.multiDex
+    implementation MainApplicationDependencies.archComponentLifeCycleExtensions
+    implementation MainApplicationDependencies.archComponentLifeCycleViewModel
+
+    // Data source dependencies
+    implementation (DataSourceDependencies.socketIO) {
         // excluding org.json which is provided by Android
         exclude group: 'org.json', module: 'json'
     }
-    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8"
-    implementation 'org.msgpack:msgpack-core:0.8.16'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-    implementation "io.reactivex.rxjava2:rxjava:2.2.7"
-    implementation "io.reactivex.rxjava2:rxandroid:2.1.1"
-    implementation 'com.squareup.okhttp3:okhttp:3.14.0'
+    implementation DataSourceDependencies.msgpack
+    implementation DataSourceDependencies.lz4
+    implementation DataSourceDependencies.okhttp
 
-    implementation "com.android.support:multidex:1.0.3"
-    implementation "android.arch.lifecycle:extensions:1.1.1"
-    implementation "android.arch.lifecycle:viewmodel:1.1.1"
-
-    implementation group: 'org.lz4', name: 'lz4-java', version: '1.4.0'
-    implementation 'org.jetbrains.bio:npy:0.3.3'
-
-    // Testing
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    // Tools
+    implementation ToolsDependencies.npy
 
     // DL4J
-    implementation (group: 'org.deeplearning4j', name: 'deeplearning4j-core', version: '1.0.0-beta3') {
+    implementation (DL4JDependencies.dl4j) {
         exclude group: 'org.bytedeco.javacpp-presets', module: 'opencv-platform'
         exclude group: 'org.bytedeco.javacpp-presets', module: 'leptonica-platform'
         exclude group: 'org.bytedeco.javacpp-presets', module: 'hdf5-platform'
         exclude group: 'org.nd4j', module: 'nd4j-base64'
     }
-    implementation group: 'org.nd4j', name: 'nd4j-native', version: '1.0.0-beta3'
-    implementation group: 'org.nd4j', name: 'nd4j-native', version: '1.0.0-beta3', classifier: "android-arm"
-    implementation group: 'org.nd4j', name: 'nd4j-native', version: '1.0.0-beta3', classifier: "android-arm64"
-    implementation group: 'org.nd4j', name: 'nd4j-native', version: '1.0.0-beta3', classifier: "android-x86"
-    implementation group: 'org.nd4j', name: 'nd4j-native', version: '1.0.0-beta3', classifier: "android-x86_64"
-    implementation group: 'org.bytedeco.javacpp-presets', name: 'openblas', version: '0.3.3-1.4.3'
-    implementation group: 'org.bytedeco.javacpp-presets', name: 'openblas', version: '0.3.3-1.4.3', classifier: "android-arm"
-    implementation group: 'org.bytedeco.javacpp-presets', name: 'openblas', version: '0.3.3-1.4.3', classifier: "android-arm64"
-    implementation group: 'org.bytedeco.javacpp-presets', name: 'openblas', version: '0.3.3-1.4.3', classifier: "android-x86"
-    implementation group: 'org.bytedeco.javacpp-presets', name: 'openblas', version: '0.3.3-1.4.3', classifier: "android-x86_64"
-    implementation group: 'org.bytedeco.javacpp-presets', name: 'opencv', version: '3.4.3-1.4.3'
-    implementation group: 'org.bytedeco.javacpp-presets', name: 'opencv', version: '3.4.3-1.4.3', classifier: "android-arm"
-    implementation group: 'org.bytedeco.javacpp-presets', name: 'opencv', version: '3.4.3-1.4.3', classifier: "android-arm64"
-    implementation group: 'org.bytedeco.javacpp-presets', name: 'opencv', version: '3.4.3-1.4.3', classifier: "android-x86"
-    implementation group: 'org.bytedeco.javacpp-presets', name: 'opencv', version: '3.4.3-1.4.3', classifier: "android-x86_64"
-    implementation group: 'org.bytedeco.javacpp-presets', name: 'leptonica', version: '1.76.0-1.4.3'
-    implementation group: 'org.bytedeco.javacpp-presets', name: 'leptonica', version: '1.76.0-1.4.3', classifier: "android-arm"
-    implementation group: 'org.bytedeco.javacpp-presets', name: 'leptonica', version: '1.76.0-1.4.3', classifier: "android-arm64"
-    implementation group: 'org.bytedeco.javacpp-presets', name: 'leptonica', version: '1.76.0-1.4.3', classifier: "android-x86"
-    implementation group: 'org.bytedeco.javacpp-presets', name: 'leptonica', version: '1.76.0-1.4.3', classifier: "android-x86_64"
+    implementation DL4JDependencies.nd4jNative
+    implementation DL4JDependencies.nd4jNativeArm
+    implementation DL4JDependencies.nd4jNativeArm64
+    implementation DL4JDependencies.nd4jNativeX86
+    implementation DL4JDependencies.nd4jNativeX86_64
 
-    implementation 'com.google.code.gson:gson:2.8.2'
-    annotationProcessor 'org.projectlombok:lombok:1.16.16'
+    implementation DL4JDependencies.openblas
+    implementation DL4JDependencies.openblasAndroidArm
+    implementation DL4JDependencies.openblasAndroidArm64
+    implementation DL4JDependencies.openblasAndroidX86
+    implementation DL4JDependencies.openblasAndroidX86_64
+
+    implementation DL4JDependencies.opencv
+    implementation DL4JDependencies.opencvAndroidArm
+    implementation DL4JDependencies.opencvAndroidArm64
+    implementation DL4JDependencies.opencvAndroidX86
+    implementation DL4JDependencies.opencvAndroidX86_64
+
+    implementation DL4JDependencies.leptonica
+    implementation DL4JDependencies.leptonicaAndroidArm
+    implementation DL4JDependencies.leptonicaAndroidArm64
+    implementation DL4JDependencies.leptonicaAndroidX86
+    implementation DL4JDependencies.leptonicaAndroidX86_64
+
+    implementation DL4JDependencies.gson
+    annotationProcessor DL4JDependencies.lombok
 
     implementation 'com.google.code.findbugs:annotations:3.0.1', {
         exclude module: 'jsr305'
         exclude module: 'jcip-annotations'
     }
 
+    // Testing
+    testImplementation UnitTestDependencies.junit
+    androidTestImplementation InstrumentationDependencies.testRunner
+    androidTestImplementation InstrumentationDependencies.espressoCore
+
+
     //This corrects for a junit version conflict.
     configurations.all {
-        resolutionStrategy.force 'junit:junit:4.12'
+        resolutionStrategy.force UnitTestDependencies.junit
     }
 }
 
@@ -137,5 +145,5 @@ task staticAnalysis(type: GradleBuild) {
 check.dependsOn ktlint
 
 dependencies {
-    ktlint "com.pinterest:ktlint:0.32.0"
+    ktlint ToolsDependencies.ktlint
 }
