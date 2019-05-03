@@ -31,7 +31,6 @@ object Versions {
     const val gson = "2.8.2"
     const val lombok = "1.16.16"
 
-
     // Data source
     const val socketIO = "1.0.0"
     const val msgpack = "0.8.16"

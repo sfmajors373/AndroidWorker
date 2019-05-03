@@ -28,9 +28,3 @@ sealed class SyftOperand(open val id: SyftTensorId) {
 
     data class SyftTensorPointer(override val id: SyftTensorId) : SyftOperand(id)
 }
-
-class TensorIdGenerator {
-    fun generateId(): SyftTensorId {
-        return System.currentTimeMillis()
-    }
-}
