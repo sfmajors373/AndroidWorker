@@ -9,6 +9,8 @@ import com.mccorby.openmined.worker.datasource.SyftWebSocketDataSource
 import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftOperand
 import com.mccorby.openmined.worker.domain.SyftRepository
+import com.mccorby.openmined.worker.domain.usecase.ConnectUseCase
+import com.mccorby.openmined.worker.domain.usecase.ObserveMessagesUseCase
 import com.mccorby.openmined.worker.framework.DL4JOperations
 import com.mccorby.openmined.worker.framework.toINDArray
 import kotlinx.android.synthetic.main.activity_main.*
@@ -33,10 +35,12 @@ class MainActivity : AppCompatActivity() {
         val syftDataSource = SyftWebSocketDataSource(webSocketUrl, clientId)
         val syftRepository = SyftRepository(syftDataSource)
         val mlFramework = DL4JOperations()
+        val observeMessagesUseCase = ObserveMessagesUseCase(syftRepository, mlFramework)
+        val connectUseCase = ConnectUseCase(syftRepository)
 
         viewModel = ViewModelProviders.of(
             this,
-            MainViewModelFactory(syftRepository, mlFramework)
+            MainViewModelFactory(observeMessagesUseCase, connectUseCase, syftRepository)
         ).get(MainViewModel::class.java)
 
         viewModel.syftMessageState.observe(this, Observer<SyftMessage> {

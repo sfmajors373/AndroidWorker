@@ -115,6 +115,8 @@ dependencies {
 
     // Testing
     testImplementation UnitTestDependencies.junit
+    testImplementation UnitTestDependencies.mockk
+
     androidTestImplementation InstrumentationDependencies.testRunner
     androidTestImplementation InstrumentationDependencies.espressoCore
 

@@ -3,20 +3,20 @@ package com.mccorby.openmined.worker.ui
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import android.util.Log
-import com.mccorby.openmined.worker.domain.Operations
 import com.mccorby.openmined.worker.domain.SyftCommand
 import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftOperand
 import com.mccorby.openmined.worker.domain.SyftRepository
+import com.mccorby.openmined.worker.domain.usecase.ConnectUseCase
+import com.mccorby.openmined.worker.domain.usecase.ObserveMessagesUseCase
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 class MainViewModel(
-    private val syftRepository: SyftRepository,
-    private val mlFramework: Operations
+    private val observeMessagesUseCase: ObserveMessagesUseCase,
+    private val connectUseCase: ConnectUseCase,
+    private val syftRepository: SyftRepository
 ) : ViewModel() {
 
     val syftMessageState = MutableLiveData<SyftMessage>()
@@ -26,15 +26,18 @@ class MainViewModel(
     private val compositeDisposable = CompositeDisposable()
 
     fun initiateCommunication() {
-        GlobalScope.launch {
-            Log.d("MAinActivity", "Starting datasource")
-            syftRepository.connect()
-            startListeningToMessages()
-        }
+        val connectDisposable = connectUseCase.execute()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe()
+        compositeDisposable.add(connectDisposable)
+
+        // TODO Ideally we should start listening to message when connectUseCase completes
+        startListeningToMessages()
     }
 
     private fun startListeningToMessages() {
-        val messageDisposable = syftRepository.onNewMessage()
+        val messageDisposable = observeMessagesUseCase.execute()
             .map { processNewMessage(it) }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -53,23 +56,16 @@ class MainViewModel(
         Log.d("MainActivity", "Received new SyftMessage at $newSyftMessage")
         when (newSyftMessage) {
             is SyftMessage.SetObject -> {
-                syftRepository.setObject(newSyftMessage.objectToSet as SyftOperand.SyftTensor)
-                syftTensorState.postValue(newSyftMessage.objectToSet)
-                syftRepository.sendMessage(SyftMessage.OperationAck)
+                syftTensorState.postValue(newSyftMessage.objectToSet as SyftOperand.SyftTensor)
             }
             is SyftMessage.ExecuteCommand -> {
-                syftTensorState.postValue(createCommandEvent(newSyftMessage))
+                processCommand(newSyftMessage.command)
             }
             is SyftMessage.GetObject -> {
-                val tensor = syftRepository.getObject(newSyftMessage.tensorPointerId)
                 viewState.postValue("Server requested tensor with id ${newSyftMessage.tensorPointerId}")
-                // TODO copy should not be necessary. Here set just to make it work. This is a value that should have been already set before
-                syftRepository.sendMessage(SyftMessage.RespondToObjectRequest(tensor.copy(id = newSyftMessage.tensorPointerId)))
             }
             is SyftMessage.DeleteObject -> {
-                syftRepository.removeObject(newSyftMessage.objectToDelete)
                 viewState.postValue("Tensor with id ${newSyftMessage.objectToDelete} deleted")
-                syftRepository.sendMessage(SyftMessage.OperationAck)
             }
             else -> {
                 syftMessageState.postValue(newSyftMessage)
@@ -77,38 +73,17 @@ class MainViewModel(
         }
     }
 
-    private fun createCommandEvent(syftMessage: SyftMessage.ExecuteCommand): SyftOperand.SyftTensor {
-        // TODO This should be done by a domain component
-        return when (syftMessage.command) {
+    private fun processCommand(command: SyftCommand) {
+        when (command) {
             is SyftCommand.Add -> {
-                when (syftMessage.command.tensors[0]) {
-                    is SyftOperand.SyftTensor -> {
-                        mlFramework.add(
-                            syftMessage.command.tensors[0] as SyftOperand.SyftTensor,
-                            syftMessage.command.tensors[1] as SyftOperand.SyftTensor
-                        )
-                    }
-                    is SyftOperand.SyftTensorPointer -> {
-                        val result = mlFramework.add(
-                            syftRepository.getObject(syftMessage.command.tensors[0].id),
-                            syftRepository.getObject(syftMessage.command.tensors[1].id)
-                        )
-                        // Add only expects now a single return id
-                        val resultId = syftMessage.command.resultIds[0]
-                        syftRepository.setObject(resultId, result)
-                        syftRepository.sendMessage(SyftMessage.OperationAck)
-                        result
-                    }
-                }
+                syftTensorState.postValue(syftRepository.getObject(command.resultIds[0]))
             }
         }
     }
 
     public override fun onCleared() {
         compositeDisposable.clear()
-        GlobalScope.launch {
-            syftRepository.disconnect()
-        }
+        syftRepository.disconnect()
         super.onCleared()
     }
 }

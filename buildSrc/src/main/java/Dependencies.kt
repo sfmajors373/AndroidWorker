@@ -47,6 +47,7 @@ object Versions {
     const val junit = "4.12"
     const val testRunner = "1.0.2"
     const val espresso = "3.0.2"
+    const val mockk = "1.9.3"
 }
 
 object ProjectDependencies {
@@ -109,6 +110,7 @@ object ToolsDependencies {
 
 object UnitTestDependencies {
     const val junit = "junit:junit:${Versions.junit}"
+    const val mockk = "io.mockk:mockk:${Versions.mockk}"
 }
 
 object InstrumentationDependencies {
