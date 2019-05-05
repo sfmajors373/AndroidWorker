@@ -37,7 +37,7 @@ class MainViewModel(
     }
 
     private fun startListeningToMessages() {
-        val messageDisposable = observeMessagesUseCase.execute()
+        val messageDisposable = observeMessagesUseCase()
             .map { processNewMessage(it) }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())

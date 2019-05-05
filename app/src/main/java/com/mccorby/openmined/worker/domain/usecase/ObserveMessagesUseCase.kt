@@ -8,9 +8,13 @@ import com.mccorby.openmined.worker.domain.SyftRepository
 import io.reactivex.Flowable
 
 // TODO This use case should be a composite of different use cases. It will need to route to the use case the message
-class ObserveMessagesUseCase(private val syftRepository: SyftRepository, private val mlFramework: MLFramework) {
+class ObserveMessagesUseCase(
+    private val syftRepository: SyftRepository,
+    private val mlFramework: MLFramework,
+    private val setObjectUseCase: SetObjectUseCase
+) {
 
-    fun execute(): Flowable<SyftMessage> {
+    operator fun invoke(): Flowable<SyftMessage> {
         return syftRepository.onNewMessage()
             .map { processNewMessage(it) }
     }
@@ -18,8 +22,7 @@ class ObserveMessagesUseCase(private val syftRepository: SyftRepository, private
     private fun processNewMessage(newSyftMessage: SyftMessage): SyftMessage {
         when (newSyftMessage) {
             is SyftMessage.SetObject -> {
-                syftRepository.setObject(newSyftMessage.objectToSet as SyftOperand.SyftTensor)
-                syftRepository.sendMessage(SyftMessage.OperationAck)
+                return setObjectUseCase(newSyftMessage)
             }
             is SyftMessage.ExecuteCommand -> {
                 createCommandEvent(newSyftMessage)
