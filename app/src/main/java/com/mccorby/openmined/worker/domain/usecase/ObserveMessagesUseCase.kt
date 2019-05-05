@@ -1,6 +1,6 @@
 package com.mccorby.openmined.worker.domain.usecase
 
-import com.mccorby.openmined.worker.domain.Operations
+import com.mccorby.openmined.worker.domain.MLFramework
 import com.mccorby.openmined.worker.domain.SyftCommand
 import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftOperand
@@ -8,7 +8,7 @@ import com.mccorby.openmined.worker.domain.SyftRepository
 import io.reactivex.Flowable
 
 // TODO This use case should be a composite of different use cases. It will need to route to the use case the message
-class ObserveMessagesUseCase(private val syftRepository: SyftRepository, private val mlFramework: Operations) {
+class ObserveMessagesUseCase(private val syftRepository: SyftRepository, private val mlFramework: MLFramework) {
 
     fun execute(): Flowable<SyftMessage> {
         return syftRepository.onNewMessage()
@@ -64,5 +64,4 @@ class ObserveMessagesUseCase(private val syftRepository: SyftRepository, private
             }
         }
     }
-
 }

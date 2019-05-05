@@ -1,7 +1,7 @@
 package com.mccorby.openmined.worker.framework
 
 import com.mccorby.openmined.worker.domain.NO_ID
-import com.mccorby.openmined.worker.domain.Operations
+import com.mccorby.openmined.worker.domain.MLFramework
 import com.mccorby.openmined.worker.domain.SyftOperand
 import org.jetbrains.bio.npy.NpyFile
 import org.nd4j.linalg.api.ndarray.INDArray
@@ -28,7 +28,7 @@ fun SyftOperand.SyftTensor.toINDArray(): INDArray {
     return Nd4j.create(npyArray.asFloatArray())
 }
 
-class DL4JOperations : Operations {
+class DL4JFramework : MLFramework {
     override fun add(tensor1: SyftOperand.SyftTensor, tensor2: SyftOperand.SyftTensor): SyftOperand.SyftTensor {
         return tensor1.toINDArray().add(tensor2.toINDArray()).toSyftTensor()
     }

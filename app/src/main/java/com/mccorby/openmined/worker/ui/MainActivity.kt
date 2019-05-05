@@ -11,7 +11,7 @@ import com.mccorby.openmined.worker.domain.SyftOperand
 import com.mccorby.openmined.worker.domain.SyftRepository
 import com.mccorby.openmined.worker.domain.usecase.ConnectUseCase
 import com.mccorby.openmined.worker.domain.usecase.ObserveMessagesUseCase
-import com.mccorby.openmined.worker.framework.DL4JOperations
+import com.mccorby.openmined.worker.framework.DL4JFramework
 import com.mccorby.openmined.worker.framework.toINDArray
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         val webSocketUrl = "http://10.0.2.2:5000"
         val syftDataSource = SyftWebSocketDataSource(webSocketUrl, clientId)
         val syftRepository = SyftRepository(syftDataSource)
-        val mlFramework = DL4JOperations()
+        val mlFramework = DL4JFramework()
         val observeMessagesUseCase = ObserveMessagesUseCase(syftRepository, mlFramework)
         val connectUseCase = ConnectUseCase(syftRepository)
 
