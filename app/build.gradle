@@ -57,6 +57,9 @@ dependencies {
     implementation MainApplicationDependencies.appCompat
     implementation MainApplicationDependencies.rxJava
     implementation MainApplicationDependencies.rxAndroid
+    implementation (MainApplicationDependencies.workerManager) {
+        exclude group: 'com.google.guava', module: 'listenablefuture' // Already in DL4J
+    }
 
     implementation MainApplicationDependencies.multiDex
     implementation MainApplicationDependencies.archComponentLifeCycleExtensions

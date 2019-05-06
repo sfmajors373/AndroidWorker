@@ -3,12 +3,15 @@ package com.mccorby.openmined.worker.ui
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import android.util.Log
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
 import com.mccorby.openmined.worker.domain.SyftCommand
 import com.mccorby.openmined.worker.domain.SyftOperand
 import com.mccorby.openmined.worker.domain.SyftRepository
 import com.mccorby.openmined.worker.domain.SyftResult
 import com.mccorby.openmined.worker.domain.usecase.ConnectUseCase
 import com.mccorby.openmined.worker.domain.usecase.ObserveMessagesUseCase
+import com.mccorby.openmined.worker.services.DisconnectWorkManager
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -16,7 +19,8 @@ import io.reactivex.schedulers.Schedulers
 class MainViewModel(
     private val observeMessagesUseCase: ObserveMessagesUseCase,
     private val connectUseCase: ConnectUseCase,
-    private val syftRepository: SyftRepository
+    private val syftRepository: SyftRepository,
+    private val workManager: WorkManager
 ) : ViewModel() {
 
     val syftMessageState = MutableLiveData<SyftResult>()
@@ -84,8 +88,7 @@ class MainViewModel(
 
     public override fun onCleared() {
         compositeDisposable.clear()
-        // TODO Use case disconnect
-        syftRepository.disconnect()
+        workManager.enqueue(OneTimeWorkRequest.from(DisconnectWorkManager::class.java))
         super.onCleared()
     }
 }
