@@ -19,6 +19,4 @@ class MainViewModelTest {
     fun setUp() {
         cut = MainViewModelFactory(observeMessagesUseCase, connectUseCase, syftRepository, workManager).create(MainViewModel::class.java)
     }
-
-
 }
