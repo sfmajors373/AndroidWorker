@@ -3,6 +3,7 @@ package com.mccorby.openmined.worker.domain.usecase
 import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftOperand
 import com.mccorby.openmined.worker.domain.SyftRepository
+import com.mccorby.openmined.worker.domain.SyftResult
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -25,7 +26,8 @@ class SetObjectUseCaseTest {
     @Test
     fun `Given a setObject message arrives then the object is stored and an ACK is sent back`() {
         val newMessage = mockk<SyftMessage.SetObject>()
-        val objectToSet = mockk<SyftOperand.SyftTensor>()
+        val objectToSet = mockk<SyftOperand.SyftTensor>(relaxed = true)
+        val expected = SyftResult.ObjectAdded(objectToSet)
 
         every { newMessage.objectToSet } returns objectToSet
         every { repository.setObject(any()) } just Runs
@@ -33,7 +35,7 @@ class SetObjectUseCaseTest {
 
         val result = cut(newMessage)
 
-        assertEquals(newMessage, result)
+        assertEquals(expected, result)
 
         verifyOrder {
             repository.setObject(objectToSet)

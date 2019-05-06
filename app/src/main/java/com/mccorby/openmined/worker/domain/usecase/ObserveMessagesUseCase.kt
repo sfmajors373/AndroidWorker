@@ -5,6 +5,7 @@ import com.mccorby.openmined.worker.domain.SyftCommand
 import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftOperand
 import com.mccorby.openmined.worker.domain.SyftRepository
+import com.mccorby.openmined.worker.domain.SyftResult
 import io.reactivex.Flowable
 
 // TODO This use case should be a composite of different use cases. It will need to route to the use case the message
@@ -14,32 +15,35 @@ class ObserveMessagesUseCase(
     private val setObjectUseCase: SetObjectUseCase
 ) {
 
-    operator fun invoke(): Flowable<SyftMessage> {
+    operator fun invoke(): Flowable<SyftResult> {
         return syftRepository.onNewMessage()
             .map { processNewMessage(it) }
     }
 
-    private fun processNewMessage(newSyftMessage: SyftMessage): SyftMessage {
-        when (newSyftMessage) {
+    private fun processNewMessage(newSyftMessage: SyftMessage): SyftResult {
+        return when (newSyftMessage) {
             is SyftMessage.SetObject -> {
-                return setObjectUseCase(newSyftMessage)
+                setObjectUseCase(newSyftMessage)
             }
             is SyftMessage.ExecuteCommand -> {
-                createCommandEvent(newSyftMessage)
+                val result = createCommandEvent(newSyftMessage)
+                SyftResult.CommandResult(newSyftMessage.command, result)
             }
             is SyftMessage.GetObject -> {
                 val tensor = syftRepository.getObject(newSyftMessage.tensorPointerId)
                 // TODO copy should not be necessary. Here set just to make it work. This is a value that should have been already set before
                 syftRepository.sendMessage(SyftMessage.RespondToObjectRequest(tensor.copy(id = newSyftMessage.tensorPointerId)))
+                SyftResult.ObjectRetrieved(tensor)
             }
             is SyftMessage.DeleteObject -> {
                 syftRepository.removeObject(newSyftMessage.objectToDelete)
                 syftRepository.sendMessage(SyftMessage.OperationAck)
+                SyftResult.ObjectRemoved(newSyftMessage.objectToDelete)
             }
             else -> {
+                SyftResult.UnexpectedResult
             }
         }
-        return newSyftMessage
     }
 
     private fun createCommandEvent(syftMessage: SyftMessage.ExecuteCommand): SyftOperand.SyftTensor {

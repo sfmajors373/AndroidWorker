@@ -6,9 +6,9 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import com.mccorby.openmined.worker.R
 import com.mccorby.openmined.worker.datasource.SyftWebSocketDataSource
-import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftOperand
 import com.mccorby.openmined.worker.domain.SyftRepository
+import com.mccorby.openmined.worker.domain.SyftResult
 import com.mccorby.openmined.worker.domain.usecase.ConnectUseCase
 import com.mccorby.openmined.worker.domain.usecase.ObserveMessagesUseCase
 import com.mccorby.openmined.worker.domain.usecase.SetObjectUseCase
@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
             MainViewModelFactory(observeMessagesUseCase, connectUseCase, syftRepository)
         ).get(MainViewModel::class.java)
 
-        viewModel.syftMessageState.observe(this, Observer<SyftMessage> {
+        viewModel.syftMessageState.observe(this, Observer<SyftResult> {
             log_area.append(it.toString() + "\n")
         })
         viewModel.syftTensorState.observe(this, Observer<SyftOperand.SyftTensor> {

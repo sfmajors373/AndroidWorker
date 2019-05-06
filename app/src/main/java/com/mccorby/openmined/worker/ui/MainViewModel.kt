@@ -4,9 +4,9 @@ import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import android.util.Log
 import com.mccorby.openmined.worker.domain.SyftCommand
-import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftOperand
 import com.mccorby.openmined.worker.domain.SyftRepository
+import com.mccorby.openmined.worker.domain.SyftResult
 import com.mccorby.openmined.worker.domain.usecase.ConnectUseCase
 import com.mccorby.openmined.worker.domain.usecase.ObserveMessagesUseCase
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -19,7 +19,7 @@ class MainViewModel(
     private val syftRepository: SyftRepository
 ) : ViewModel() {
 
-    val syftMessageState = MutableLiveData<SyftMessage>()
+    val syftMessageState = MutableLiveData<SyftResult>()
     val syftTensorState = MutableLiveData<SyftOperand.SyftTensor>()
     val viewState = MutableLiveData<String>()
 
@@ -52,37 +52,39 @@ class MainViewModel(
         compositeDisposable.addAll(messageDisposable, statusDisposable)
     }
 
-    private fun processNewMessage(newSyftMessage: SyftMessage) {
-        Log.d("MainActivity", "Received new SyftMessage at $newSyftMessage")
-        when (newSyftMessage) {
-            is SyftMessage.SetObject -> {
-                syftTensorState.postValue(newSyftMessage.objectToSet as SyftOperand.SyftTensor)
+    private fun processNewMessage(syftResult: SyftResult) {
+        Log.d("MainActivity", "Received new SyftMessage at $syftResult")
+        when (syftResult) {
+            is SyftResult.ObjectAdded -> {
+                syftTensorState.postValue(syftResult.syftObject as SyftOperand.SyftTensor)
             }
-            is SyftMessage.ExecuteCommand -> {
-                processCommand(newSyftMessage.command)
+            is SyftResult.CommandResult -> {
+                processCommand(syftResult)
             }
-            is SyftMessage.GetObject -> {
-                viewState.postValue("Server requested tensor with id ${newSyftMessage.tensorPointerId}")
+            is SyftResult.ObjectRetrieved -> {
+                viewState.postValue("Server requested tensor with id ${syftResult.syftObject.id}")
             }
-            is SyftMessage.DeleteObject -> {
-                viewState.postValue("Tensor with id ${newSyftMessage.objectToDelete} deleted")
+            is SyftResult.ObjectRemoved -> {
+                viewState.postValue("Tensor with id ${syftResult.pointer} deleted")
             }
             else -> {
-                syftMessageState.postValue(newSyftMessage)
+                syftMessageState.postValue(syftResult)
             }
         }
     }
 
-    private fun processCommand(command: SyftCommand) {
-        when (command) {
+    private fun processCommand(commandResult: SyftResult.CommandResult) {
+        when (commandResult.command) {
             is SyftCommand.Add -> {
-                syftTensorState.postValue(syftRepository.getObject(command.resultIds[0]))
+                viewState.postValue("Result of Add:")
+                syftTensorState.postValue(commandResult.commandResult)
             }
         }
     }
 
     public override fun onCleared() {
         compositeDisposable.clear()
+        // TODO Use case disconnect
         syftRepository.disconnect()
         super.onCleared()
     }

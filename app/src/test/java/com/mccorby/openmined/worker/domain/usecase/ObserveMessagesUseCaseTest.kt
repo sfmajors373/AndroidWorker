@@ -2,7 +2,9 @@ package com.mccorby.openmined.worker.domain.usecase
 
 import com.mccorby.openmined.worker.domain.MLFramework
 import com.mccorby.openmined.worker.domain.SyftMessage
+import com.mccorby.openmined.worker.domain.SyftOperand
 import com.mccorby.openmined.worker.domain.SyftRepository
+import com.mccorby.openmined.worker.domain.SyftResult
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifyOrder
@@ -25,13 +27,17 @@ class ObserveMessagesUseCaseTest {
 
     @Test
     fun `Given a SetObject message then use case forwards it to SetObject use case`() {
-        val newMessage = mockk<SyftMessage.SetObject>()
+        val newMessage = mockk<SyftMessage.SetObject>(relaxed = true)
+        val objectToSet = mockk<SyftOperand>(relaxed = true)
+        val expected = SyftResult.ObjectAdded(objectToSet)
 
+        every { setObjectUseCase(newMessage) } returns expected
         every { repository.onNewMessage() } returns Flowable.just(newMessage)
 
         val testObserver = cut().test()
 
         testObserver.assertNoErrors()
+            .assertValue(expected)
 
         verifyOrder {
             setObjectUseCase(newMessage)
