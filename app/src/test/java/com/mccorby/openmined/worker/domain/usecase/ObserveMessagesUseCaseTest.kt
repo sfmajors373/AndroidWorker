@@ -1,6 +1,5 @@
 package com.mccorby.openmined.worker.domain.usecase
 
-import com.mccorby.openmined.worker.domain.MLFramework
 import com.mccorby.openmined.worker.domain.SyftCommand
 import com.mccorby.openmined.worker.domain.SyftMessage
 import com.mccorby.openmined.worker.domain.SyftOperand
@@ -16,15 +15,15 @@ import org.junit.Test
 class ObserveMessagesUseCaseTest {
 
     private val repository = mockk<SyftRepository>()
-    private val mlFramework = mockk<MLFramework>()
     private val setObjectUseCase = mockk<SetObjectUseCase>(relaxed = true)
     private val executeCommandUseCase = mockk<ExecuteCommandUseCase>(relaxed = true)
+    private val getObjectUseCase = mockk<GetObjectUseCase>(relaxed = true)
 
     private lateinit var cut: ObserveMessagesUseCase
 
     @Before
     fun setUp() {
-        cut = ObserveMessagesUseCase(repository, setObjectUseCase, executeCommandUseCase)
+        cut = ObserveMessagesUseCase(repository, setObjectUseCase, executeCommandUseCase, getObjectUseCase)
     }
 
     @Test
@@ -47,7 +46,7 @@ class ObserveMessagesUseCaseTest {
     }
 
     @Test
-    fun `Given a getObject message arrives then the object is retrieved and Response is sent back`() {
+    fun `Given an execute command message arrives then the object is retrieved and Response is sent back`() {
         val newMessage = mockk<SyftMessage.ExecuteCommand>(relaxed = true)
         val syftCommand = mockk<SyftCommand>(relaxed = true)
         val commandResult = mockk<SyftOperand.SyftTensor>(relaxed = true)
@@ -63,6 +62,26 @@ class ObserveMessagesUseCaseTest {
 
         verifyOrder {
             executeCommandUseCase(newMessage)
+        }
+    }
+
+    @Test
+    fun `Given a getObject message then the use case retrieves the object and returns it in a response`() {
+        val tensorId = 1L
+        val newMessage = SyftMessage.GetObject(tensorId)
+        val tensor = mockk<SyftOperand.SyftTensor>()
+        val expected = SyftResult.ObjectRetrieved(tensor)
+
+        every { repository.onNewMessage() } returns Flowable.just(newMessage)
+        every { getObjectUseCase(newMessage) } returns expected
+
+        val testObserver = cut().test()
+
+        testObserver.assertNoErrors()
+            .assertValue(expected)
+
+        verifyOrder {
+            getObjectUseCase(newMessage)
         }
     }
 }

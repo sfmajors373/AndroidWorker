@@ -9,7 +9,8 @@ import io.reactivex.Flowable
 class ObserveMessagesUseCase(
     private val syftRepository: SyftRepository,
     private val setObjectUseCase: SetObjectUseCase,
-    private val executeCommandUseCase: ExecuteCommandUseCase
+    private val executeCommandUseCase: ExecuteCommandUseCase,
+    private val getObjectUseCase: GetObjectUseCase
 ) {
 
     operator fun invoke(): Flowable<SyftResult> {
@@ -26,10 +27,7 @@ class ObserveMessagesUseCase(
                 executeCommandUseCase(newSyftMessage)
             }
             is SyftMessage.GetObject -> {
-                val tensor = syftRepository.getObject(newSyftMessage.tensorPointerId)
-                // TODO copy should not be necessary. Here set just to make it work. This is a value that should have been already set before
-                syftRepository.sendMessage(SyftMessage.RespondToObjectRequest(tensor.copy(id = newSyftMessage.tensorPointerId)))
-                SyftResult.ObjectRetrieved(tensor)
+                getObjectUseCase(newSyftMessage)
             }
             is SyftMessage.DeleteObject -> {
                 syftRepository.removeObject(newSyftMessage.objectToDelete)

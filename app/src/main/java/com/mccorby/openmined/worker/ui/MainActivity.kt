@@ -12,6 +12,7 @@ import com.mccorby.openmined.worker.domain.SyftRepository
 import com.mccorby.openmined.worker.domain.SyftResult
 import com.mccorby.openmined.worker.domain.usecase.ConnectUseCase
 import com.mccorby.openmined.worker.domain.usecase.ExecuteCommandUseCase
+import com.mccorby.openmined.worker.domain.usecase.GetObjectUseCase
 import com.mccorby.openmined.worker.domain.usecase.ObserveMessagesUseCase
 import com.mccorby.openmined.worker.domain.usecase.SetObjectUseCase
 import com.mccorby.openmined.worker.framework.DL4JFramework
@@ -40,7 +41,13 @@ class MainActivity : AppCompatActivity() {
         val mlFramework = DL4JFramework()
         val setObjectUseCase = SetObjectUseCase(syftRepository)
         val executeCommandUseCase = ExecuteCommandUseCase(syftRepository, mlFramework)
-        val observeMessagesUseCase = ObserveMessagesUseCase(syftRepository, setObjectUseCase, executeCommandUseCase)
+        val getObjectUseCase = GetObjectUseCase(syftRepository)
+        val observeMessagesUseCase = ObserveMessagesUseCase(
+            syftRepository,
+            setObjectUseCase,
+            executeCommandUseCase,
+            getObjectUseCase
+        )
         val connectUseCase = ConnectUseCase(syftRepository)
 
         viewModel = ViewModelProviders.of(
