@@ -11,6 +11,7 @@ import com.mccorby.openmined.worker.domain.SyftOperand
 import com.mccorby.openmined.worker.domain.SyftRepository
 import com.mccorby.openmined.worker.domain.SyftResult
 import com.mccorby.openmined.worker.domain.usecase.ConnectUseCase
+import com.mccorby.openmined.worker.domain.usecase.DeleteObjectUseCase
 import com.mccorby.openmined.worker.domain.usecase.ExecuteCommandUseCase
 import com.mccorby.openmined.worker.domain.usecase.GetObjectUseCase
 import com.mccorby.openmined.worker.domain.usecase.ObserveMessagesUseCase
@@ -42,11 +43,13 @@ class MainActivity : AppCompatActivity() {
         val setObjectUseCase = SetObjectUseCase(syftRepository)
         val executeCommandUseCase = ExecuteCommandUseCase(syftRepository, mlFramework)
         val getObjectUseCase = GetObjectUseCase(syftRepository)
+        val deleteObjectUseCase = DeleteObjectUseCase(syftRepository)
         val observeMessagesUseCase = ObserveMessagesUseCase(
             syftRepository,
             setObjectUseCase,
             executeCommandUseCase,
-            getObjectUseCase
+            getObjectUseCase,
+            deleteObjectUseCase
         )
         val connectUseCase = ConnectUseCase(syftRepository)
 

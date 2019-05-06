@@ -11,7 +11,15 @@ sealed class SyftResult {
         }
     }
 
-    class ObjectRemoved(val pointer: SyftTensorId) : SyftResult()
+    class ObjectRemoved(val pointer: SyftTensorId) : SyftResult() {
+        override fun equals(other: Any?): Boolean {
+            return pointer == (other as ObjectRemoved).pointer
+        }
+
+        override fun hashCode(): Int {
+            return pointer.hashCode()
+        }
+    }
     class ObjectRetrieved(val syftObject: SyftOperand.SyftTensor) : SyftResult()
     class CommandResult(val command: SyftCommand, val commandResult: SyftOperand.SyftTensor) : SyftResult()
     object UnexpectedResult : SyftResult()

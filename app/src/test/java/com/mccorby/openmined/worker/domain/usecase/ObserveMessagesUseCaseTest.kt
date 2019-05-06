@@ -18,12 +18,13 @@ class ObserveMessagesUseCaseTest {
     private val setObjectUseCase = mockk<SetObjectUseCase>(relaxed = true)
     private val executeCommandUseCase = mockk<ExecuteCommandUseCase>(relaxed = true)
     private val getObjectUseCase = mockk<GetObjectUseCase>(relaxed = true)
+    private val deleteObjectUseCase = mockk<DeleteObjectUseCase>(relaxed = true)
 
     private lateinit var cut: ObserveMessagesUseCase
 
     @Before
     fun setUp() {
-        cut = ObserveMessagesUseCase(repository, setObjectUseCase, executeCommandUseCase, getObjectUseCase)
+        cut = ObserveMessagesUseCase(repository, setObjectUseCase, executeCommandUseCase, getObjectUseCase, deleteObjectUseCase)
     }
 
     @Test
@@ -82,6 +83,25 @@ class ObserveMessagesUseCaseTest {
 
         verifyOrder {
             getObjectUseCase(newMessage)
+        }
+    }
+
+    @Test
+    fun `Given a deleteObject message then the use case deletes the object and returns ACK`() {
+        val tensorId = 1L
+        val newMessage = SyftMessage.DeleteObject(tensorId)
+        val expected = SyftResult.ObjectRemoved(tensorId)
+
+        every { repository.onNewMessage() } returns Flowable.just(newMessage)
+        every { deleteObjectUseCase(newMessage) } returns expected
+
+        val testObserver = cut().test()
+
+        testObserver.assertNoErrors()
+            .assertValue(expected)
+
+        verifyOrder {
+            deleteObjectUseCase(newMessage)
         }
     }
 }
