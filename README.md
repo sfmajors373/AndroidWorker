@@ -21,5 +21,7 @@ The Android Worker is an app that connects to a PySyft worker and performs the o
 * Make sure the socket server, the client in the notebook and the app all point to the same host/port
 * To run the setup locally, it is better to use an Android emulator
 
+## PySfyt Version
+This app has been tested with PySyft 0.1.13a1
 
 
