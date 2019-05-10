@@ -35,6 +35,10 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    lintOptions {
+        lintConfig file("./quality/lint.xml")
+    }
+
     // Required by DL4J
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
