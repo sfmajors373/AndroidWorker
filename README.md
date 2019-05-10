@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/OpenMined/AndroidWorker.svg?branch=master)](https://travis-ci.org/OpenMined/AndroidWorker)
+
 ![PySyft for Android](art/pysyft_android.png)
 
 See publication in [PySyft for Android. Extending OpenMined to mobile devices](https://medium.com/@mccorby/pysyft-android-b28da47a767e)
