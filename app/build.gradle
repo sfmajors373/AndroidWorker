@@ -83,9 +83,9 @@ dependencies {
 
     // DL4J
     implementation (DL4JDependencies.dl4j) {
-        exclude group: 'org.bytedeco.javacpp-presets', module: 'opencv-platform'
-        exclude group: 'org.bytedeco.javacpp-presets', module: 'leptonica-platform'
-        exclude group: 'org.bytedeco.javacpp-presets', module: 'hdf5-platform'
+        exclude group: 'org.bytedeco', module: 'opencv-platform'
+        exclude group: 'org.bytedeco', module: 'leptonica-platform'
+        exclude group: 'org.bytedeco', module: 'hdf5-platform'
         exclude group: 'org.nd4j', module: 'nd4j-base64'
     }
     implementation DL4JDependencies.nd4jNative
