@@ -115,7 +115,7 @@ private fun unpackOperation(operationArray: ArrayValue): OperationDto {
     return when (operation) {
         OBJ -> unpackObjectSet(operands)
         CMD -> unpackCommand(operands)
-        OBJ_DEL, FORCE_OBJ_DEL-> unpackObjectDelete(operands)
+        OBJ_DEL, FORCE_OBJ_DEL -> unpackObjectDelete(operands)
         OBJ_REQ -> unpackObjectRequest(operands)
         else -> {
             TODO("Operation $operation not yet implemented! $operationArray")
