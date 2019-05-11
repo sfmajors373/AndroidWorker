@@ -3,6 +3,7 @@ package com.mccorby.openmined.worker.datasource.mapper
 import com.mccorby.openmined.worker.datasource.mapper.CommandConstants.CMD_ADD
 import com.mccorby.openmined.worker.datasource.mapper.CompressionConstants.COMPRESSION_ENABLED
 import com.mccorby.openmined.worker.datasource.mapper.OperationConstants.CMD
+import com.mccorby.openmined.worker.datasource.mapper.OperationConstants.FORCE_OBJ_DEL
 import com.mccorby.openmined.worker.datasource.mapper.OperationConstants.OBJ
 import com.mccorby.openmined.worker.datasource.mapper.OperationConstants.OBJ_DEL
 import com.mccorby.openmined.worker.datasource.mapper.OperationConstants.OBJ_REQ
@@ -37,6 +38,7 @@ internal object OperationConstants {
     internal const val IS_NONE = 6
     internal const val GET_SHAPE = 7
     internal const val SEARCH = 8
+    internal const val FORCE_OBJ_DEL = 9
 }
 
 // Types are encoded in the stream sent from PySyft
@@ -113,10 +115,10 @@ private fun unpackOperation(operationArray: ArrayValue): OperationDto {
     return when (operation) {
         OBJ -> unpackObjectSet(operands)
         CMD -> unpackCommand(operands)
-        OBJ_DEL -> unpackObjectDelete(operands)
+        OBJ_DEL, FORCE_OBJ_DEL-> unpackObjectDelete(operands)
         OBJ_REQ -> unpackObjectRequest(operands)
         else -> {
-            TODO("Operation $operation not yet implemented!")
+            TODO("Operation $operation not yet implemented! $operationArray")
         }
     }
 }
@@ -229,7 +231,7 @@ private fun mapOperation(operationDto: OperationDto): SyftMessage {
             }
             SyftMessage.ExecuteCommand(SyftCommand.Add(listOfSyftOperands, operationDto.returnId))
         }
-        OBJ_DEL -> {
+        OBJ_DEL, FORCE_OBJ_DEL -> {
             SyftMessage.DeleteObject((operationDto.value[0] as OperandDto.TensorPointerDto).id)
         }
         OBJ_REQ -> {
