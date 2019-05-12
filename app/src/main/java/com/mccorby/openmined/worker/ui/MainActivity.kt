@@ -17,7 +17,9 @@ import com.mccorby.openmined.worker.domain.usecase.GetObjectUseCase
 import com.mccorby.openmined.worker.domain.usecase.ObserveMessagesUseCase
 import com.mccorby.openmined.worker.domain.usecase.SetObjectUseCase
 import com.mccorby.openmined.worker.framework.DL4JFramework
+import com.mccorby.openmined.worker.framework.MPCFramework
 import com.mccorby.openmined.worker.framework.toINDArray
+import com.mccorby.openmined.worker.framework.toMPCTensor
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -39,7 +41,8 @@ class MainActivity : AppCompatActivity() {
         val webSocketUrl = "http://10.0.2.2:5000"
         val syftDataSource = SyftWebSocketDataSource(webSocketUrl, clientId)
         val syftRepository = SyftRepository(syftDataSource)
-        val mlFramework = DL4JFramework()
+        val mlFramework = MPCFramework()
+//        val mlFramework = DL4JFramework()
         val setObjectUseCase = SetObjectUseCase(syftRepository)
         val executeCommandUseCase = ExecuteCommandUseCase(syftRepository, mlFramework)
         val getObjectUseCase = GetObjectUseCase(syftRepository)
@@ -62,7 +65,7 @@ class MainActivity : AppCompatActivity() {
             log_area.append(it.toString() + "\n")
         })
         viewModel.syftTensorState.observe(this, Observer<SyftOperand.SyftTensor> {
-            log_area.append(it!!.toINDArray().toString() + "\n")
+            log_area.append(it!!.toMPCTensor().toString() + "\n")
         })
         viewModel.viewState.observe(this, Observer {
             log_area.append(it + "\n")

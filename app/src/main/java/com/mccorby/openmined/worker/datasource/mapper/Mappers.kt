@@ -54,10 +54,8 @@ internal object CommandConstants {
     const val CMD_ADD = "__add__"
 }
 
-// TODO Probably Json or something similar. The name should reflect the format
 fun SyftMessage.mapToString(): String {
     val packer = MessagePack.newDefaultBufferPacker()
-    // TODO packer.packBlahBlahBlha
     return when (this) {
         is SyftMessage.OperationAck -> packer.packString(SyftMessage.OperationAck.toString())
         else -> {

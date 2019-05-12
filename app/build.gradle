@@ -56,6 +56,8 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
+//    api "scientifik:kmath-core-jvm:0.1.0-dev"
+
     implementation MainApplicationDependencies.kotlin
     implementation MainApplicationDependencies.coroutines
     implementation MainApplicationDependencies.appCompat

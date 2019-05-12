@@ -24,6 +24,12 @@ object Versions {
     // Arrow
     const val arrowVersion = "0.8.2"
 
+    // TFLite
+    const val tflite = "0.0.0-nightly"
+
+    // KMath
+    const val kmath = ""
+
     // DL4J
     const val dl4j = "1.0.0-beta4"
     const val openblas = "0.3.5-1.5"
@@ -66,6 +72,10 @@ object MainApplicationDependencies {
     const val archComponentLifeCycleExtensions = "android.arch.lifecycle:extensions:${Versions.archComponents}"
     const val archComponentLifeCycleViewModel = "android.arch.lifecycle:viewmodel:${Versions.archComponents}"
     const val workerManager = "android.arch.work:work-runtime-ktx:${Versions.workManager}"
+}
+
+object TFLiteDependencies {
+    const val tflite = "org.tensorflow:tensorflow-lite:${Versions.tflite}"
 }
 
 object DL4JDependencies {

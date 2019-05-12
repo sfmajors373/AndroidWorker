@@ -16,6 +16,7 @@ buildscript {
 
 allprojects {
     repositories {
+        maven { url = "http://npm.mipt.ru:8081/artifactory/gradle-dev" }
         google()
         jcenter()
         
