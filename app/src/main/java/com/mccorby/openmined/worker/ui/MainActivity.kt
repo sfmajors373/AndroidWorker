@@ -1,5 +1,6 @@
 package com.mccorby.openmined.worker.ui
 
+import android.view.View;
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
@@ -18,7 +19,12 @@ import com.mccorby.openmined.worker.domain.usecase.ObserveMessagesUseCase
 import com.mccorby.openmined.worker.domain.usecase.SetObjectUseCase
 import com.mccorby.openmined.worker.framework.DL4JFramework
 import com.mccorby.openmined.worker.framework.toINDArray
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries
 import kotlinx.android.synthetic.main.activity_main.*
+
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -67,5 +73,16 @@ class MainActivity : AppCompatActivity() {
         viewModel.viewState.observe(this, Observer {
             log_area.append(it + "\n")
         })
+        val graph = findViewById<View>(R.id.graph) as GraphView
+        val series = LineGraphSeries<DataPoint>(
+            arrayOf<DataPoint>(
+                DataPoint(0.0, 1.0),
+                DataPoint(1.0, 5.0),
+                DataPoint(2.0, 3.0),
+                DataPoint(3.0, 2.0),
+                DataPoint(4.0, 6.0)
+            )
+        )
+        graph.addSeries(series)
     }
 }

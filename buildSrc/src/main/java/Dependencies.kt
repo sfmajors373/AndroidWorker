@@ -119,3 +119,7 @@ object InstrumentationDependencies {
     const val testRunner = "com.android.support.test:runner:${Versions.testRunner}"
     const val espressoCore = "com.android.support.test.espresso:espresso-core:${Versions.espresso}"
 }
+
+object GraphDependencies {
+    const val GraphView = "com.jjoe64:graphview:4.2.2"
+}
